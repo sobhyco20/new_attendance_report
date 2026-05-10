@@ -16,21 +16,32 @@ def load_css():
 
     :root {
 
-        --bg-main: #020817;
+        --bg-main: #f4f7fb;
 
-        --bg-card: #0f172a;
+        --bg-card: #ffffff;
 
-        --bg-card-2: #111c34;
+        --bg-card-2: #f8fafc;
 
-        --border-color: rgba(255,255,255,0.07);
+        --border-color: rgba(15,23,42,0.08);
 
-        --primary: #2563eb;
+        --primary: #3b82f6;
 
-        --primary-hover: #1d4ed8;
+        --primary-hover: #2563eb;
 
-        --text-main: #f8fafc;
+        --secondary: #6366f1;
 
-        --text-soft: #cbd5e1;
+        --success: #10b981;
+
+        --danger: #ef4444;
+
+        --warning: #f59e0b;
+
+        --text-main: #0f172a;
+
+        --text-soft: #64748b;
+
+        --shadow:
+            0 10px 30px rgba(15,23,42,0.06);
     }
 
     /* =====================================================
@@ -60,8 +71,8 @@ def load_css():
         background:
             linear-gradient(
                 180deg,
-                #020617 0%,
-                #071226 100%
+                #f8fbff 0%,
+                #eef4ff 100%
             );
     }
 
@@ -81,26 +92,46 @@ def load_css():
     }
 
     /* =====================================================
-    TOP HEADER FIX
+    TOP HEADER
     ===================================================== */
 
     header {
 
         background:
-            rgba(2,6,23,0.75) !important;
+            rgba(255,255,255,0.88) !important;
 
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(12px);
+
+        border-bottom:
+            1px solid rgba(15,23,42,0.05);
     }
 
     /* =====================================================
-    TABS FIX
+    SIDEBAR
+    ===================================================== */
+
+    section[data-testid="stSidebar"] {
+
+        background:
+            linear-gradient(
+                180deg,
+                #ffffff,
+                #f8fafc
+            );
+
+        border-left:
+            1px solid rgba(15,23,42,0.05);
+    }
+
+    /* =====================================================
+    TABS
     ===================================================== */
 
     .stTabs {
 
         direction: ltr;
 
-        margin-top: 10px;
+        margin-top: 12px;
     }
 
     .stTabs > div {
@@ -119,10 +150,9 @@ def load_css():
         flex-wrap: nowrap;
 
         padding:
-
-            12px
+            10px
             0
-            16px
+            18px
             0;
     }
 
@@ -130,36 +160,42 @@ def load_css():
 
         height: 54px;
 
-        border-radius: 14px;
+        border-radius: 16px;
 
         padding:
             10px
             24px;
 
-        font-size: 16px;
+        font-size: 15px;
 
         font-weight: 700;
 
-        color: white;
+        color: #0f172a;
 
         background:
-            rgba(15,23,42,0.95);
+            rgba(255,255,255,0.95);
 
         border:
-            1px solid var(--border-color);
+            1px solid rgba(15,23,42,0.06);
 
         transition: 0.25s;
 
         min-width: 190px;
+
+        box-shadow:
+            0 2px 10px rgba(15,23,42,0.04);
     }
 
     button[data-baseweb="tab"]:hover {
 
+        transform:
+            translateY(-1px);
+
         background:
-            rgba(37,99,235,0.15);
+            rgba(59,130,246,0.08);
 
         border-color:
-            rgba(37,99,235,0.4);
+            rgba(59,130,246,0.25);
     }
 
     button[aria-selected="true"] {
@@ -167,14 +203,14 @@ def load_css():
         background:
             linear-gradient(
                 135deg,
-                #2563eb,
-                #1d4ed8
+                #3b82f6,
+                #2563eb
             ) !important;
 
         color: white !important;
 
         box-shadow:
-            0 4px 18px rgba(37,99,235,0.35);
+            0 6px 22px rgba(37,99,235,0.22);
     }
 
     /* =====================================================
@@ -186,21 +222,21 @@ def load_css():
         background:
             linear-gradient(
                 180deg,
-                rgba(15,23,42,0.98),
-                rgba(17,28,52,0.98)
+                #ffffff,
+                #f8fafc
             );
 
-        border-radius: 22px;
+        border-radius: 24px;
 
         padding: 24px;
 
-        margin-bottom: 18px;
+        margin-bottom: 20px;
 
         border:
-            1px solid var(--border-color);
+            1px solid rgba(15,23,42,0.06);
 
         box-shadow:
-            0 10px 30px rgba(0,0,0,0.22);
+            var(--shadow);
     }
 
     .card-title {
@@ -211,7 +247,7 @@ def load_css():
 
         margin-bottom: 18px;
 
-        color: white;
+        color: #0f172a;
     }
 
     /* =====================================================
@@ -223,24 +259,46 @@ def load_css():
         background:
             linear-gradient(
                 180deg,
-                rgba(15,23,42,0.98),
-                rgba(17,28,52,0.98)
+                #ffffff,
+                #f8fafc
             );
 
-        border-radius: 18px;
+        border-radius: 20px;
 
-        padding: 16px;
+        padding: 18px;
 
         border:
-            1px solid var(--border-color);
+            1px solid rgba(15,23,42,0.06);
 
         box-shadow:
-            0 4px 16px rgba(0,0,0,0.16);
+            0 4px 16px rgba(15,23,42,0.05);
+
+        transition: 0.25s;
+    }
+
+    div[data-testid="metric-container"]:hover {
+
+        transform:
+            translateY(-2px);
+
+        box-shadow:
+            0 10px 28px rgba(15,23,42,0.08);
     }
 
     div[data-testid="metric-container"] label {
 
-        color: var(--text-soft) !important;
+        color:
+            var(--text-soft) !important;
+
+        font-weight: 600;
+    }
+
+    div[data-testid="metric-container"] [data-testid="stMetricValue"] {
+
+        color:
+            #0f172a !important;
+
+        font-weight: 800;
     }
 
     /* =====================================================
@@ -254,24 +312,39 @@ def load_css():
     .stSelectbox div[data-baseweb="select"] {
 
         background:
-            rgba(2,6,23,0.95) !important;
-
-        color:
             white !important;
 
+        color:
+            #0f172a !important;
+
         border-radius:
-            14px !important;
+            16px !important;
 
         border:
-            1px solid rgba(255,255,255,0.08) !important;
+            1px solid rgba(15,23,42,0.08) !important;
 
         min-height:
-            48px !important;
+            50px !important;
+
+        box-shadow:
+            inset 0 1px 3px rgba(15,23,42,0.03);
     }
 
     textarea {
 
-        min-height: 120px !important;
+        min-height:
+            120px !important;
+    }
+
+    .stTextInput input:focus,
+    .stDateInput input:focus,
+    .stTextArea textarea:focus {
+
+        border:
+            1px solid rgba(59,130,246,0.4) !important;
+
+        box-shadow:
+            0 0 0 4px rgba(59,130,246,0.08) !important;
     }
 
     /* =====================================================
@@ -285,7 +358,7 @@ def load_css():
 
         height: 52px;
 
-        border-radius: 14px;
+        border-radius: 16px;
 
         border: none;
 
@@ -296,8 +369,8 @@ def load_css():
         background:
             linear-gradient(
                 135deg,
-                #2563eb,
-                #1d4ed8
+                #3b82f6,
+                #2563eb
             );
 
         color: white;
@@ -305,21 +378,24 @@ def load_css():
         transition: 0.25s;
 
         box-shadow:
-            0 4px 18px rgba(37,99,235,0.35);
+            0 6px 22px rgba(37,99,235,0.22);
     }
 
     .stButton button:hover,
     .stDownloadButton button:hover {
 
         transform:
-            translateY(-1px);
+            translateY(-2px);
 
         background:
             linear-gradient(
                 135deg,
-                #1d4ed8,
-                #1e40af
+                #2563eb,
+                #1d4ed8
             );
+
+        box-shadow:
+            0 10px 28px rgba(37,99,235,0.28);
     }
 
     /* =====================================================
@@ -329,14 +405,21 @@ def load_css():
     section[data-testid="stFileUploader"] {
 
         background:
-            rgba(15,23,42,0.92);
+            linear-gradient(
+                180deg,
+                #ffffff,
+                #f8fafc
+            );
 
-        border-radius: 18px;
+        border-radius: 20px;
 
-        padding: 18px;
+        padding: 20px;
 
         border:
-            1px dashed rgba(255,255,255,0.14);
+            2px dashed rgba(59,130,246,0.18);
+
+        box-shadow:
+            var(--shadow);
     }
 
     /* =====================================================
@@ -345,12 +428,45 @@ def load_css():
 
     .stDataFrame {
 
-        border-radius: 18px;
+        border-radius: 20px;
 
         overflow: hidden;
 
         border:
-            1px solid rgba(255,255,255,0.08);
+            1px solid rgba(15,23,42,0.06);
+
+        box-shadow:
+            var(--shadow);
+    }
+
+    /* =====================================================
+    TABLE
+    ===================================================== */
+
+    table {
+
+        border-radius: 18px !important;
+    }
+
+    thead tr th {
+
+        background:
+            #eff6ff !important;
+
+        color:
+            #1e3a8a !important;
+
+        font-weight:
+            800 !important;
+
+        border-bottom:
+            1px solid rgba(59,130,246,0.15) !important;
+    }
+
+    tbody tr:hover {
+
+        background:
+            rgba(59,130,246,0.04) !important;
     }
 
     /* =====================================================
@@ -359,7 +475,13 @@ def load_css():
 
     .stAlert {
 
-        border-radius: 14px;
+        border-radius: 16px;
+
+        border:
+            none;
+
+        box-shadow:
+            var(--shadow);
     }
 
     /* =====================================================
@@ -371,7 +493,8 @@ def load_css():
     p,
     span {
 
-        color: var(--text-main);
+        color:
+            var(--text-main);
     }
 
     /* =====================================================
@@ -387,14 +510,95 @@ def load_css():
 
     ::-webkit-scrollbar-thumb {
 
-        background: #334155;
+        background:
+            #cbd5e1;
 
         border-radius: 20px;
     }
 
+    ::-webkit-scrollbar-thumb:hover {
+
+        background:
+            #94a3b8;
+    }
+
     ::-webkit-scrollbar-track {
 
-        background: transparent;
+        background:
+            transparent;
+    }
+
+    /* =====================================================
+    EXPANDER
+    ===================================================== */
+
+    .streamlit-expanderHeader {
+
+        background:
+            white;
+
+        border-radius:
+            14px;
+
+        border:
+            1px solid rgba(15,23,42,0.06);
+    }
+
+    /* =====================================================
+    SELECTBOX
+    ===================================================== */
+
+    div[data-baseweb="select"] {
+
+        border-radius:
+            16px !important;
+    }
+
+    /* =====================================================
+    LOGIN BOX
+    ===================================================== */
+
+    .login-card {
+
+        max-width:
+            460px;
+
+        margin:
+            auto;
+
+        margin-top:
+            70px;
+    }
+
+    /* =====================================================
+    MOBILE
+    ===================================================== */
+
+    @media (max-width: 768px) {
+
+        .block-container {
+
+            padding-top: 3rem;
+
+            max-width: 100%;
+        }
+
+        button[data-baseweb="tab"] {
+
+            min-width: 150px;
+
+            font-size: 14px;
+        }
+
+        .card {
+
+            padding: 18px;
+        }
+
+        .card-title {
+
+            font-size: 20px;
+        }
     }
 
     </style>
