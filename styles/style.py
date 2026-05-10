@@ -11,26 +11,43 @@ def load_css():
     <style>
 
     /* =====================================================
+    GOOGLE FONT
+    ===================================================== */
+
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+
+    /* =====================================================
     ROOT
     ===================================================== */
 
     :root {
 
-        --bg-main: #020817;
-
-        --bg-card: #0f172a;
-
-        --bg-card-2: #111c34;
-
-        --border-color: rgba(255,255,255,0.07);
-
         --primary: #2563eb;
 
-        --primary-hover: #1d4ed8;
+        --primary-soft: #dbeafe;
 
-        --text-main: #f8fafc;
+        --secondary: #7c3aed;
 
-        --text-soft: #cbd5e1;
+        --success: #10b981;
+
+        --danger: #ef4444;
+
+        --warning: #f59e0b;
+
+        --bg-main: #eef4ff;
+
+        --bg-card: rgba(255,255,255,0.75);
+
+        --border: rgba(255,255,255,0.45);
+
+        --text-main: #0f172a;
+
+        --text-soft: #64748b;
+
+        --shadow:
+            0 10px 35px rgba(15,23,42,0.08);
+
+        --radius: 22px;
     }
 
     /* =====================================================
@@ -41,28 +58,76 @@ def load_css():
     body,
     .stApp {
 
-        direction: rtl;
+        direction: rtl !important;
 
-        text-align: right;
+        text-align: right !important;
 
         font-family:
-            "Segoe UI",
-            Tahoma,
+            'Tajawal',
             sans-serif;
 
-        background-color: var(--bg-main);
-
-        color: var(--text-main);
-    }
-
-    .stApp {
+        color:
+            var(--text-main);
 
         background:
             linear-gradient(
-                180deg,
-                #020617 0%,
-                #071226 100%
+                135deg,
+                #eef4ff 0%,
+                #f8fbff 40%,
+                #edf7ff 100%
             );
+    }
+
+    /* =====================================================
+    BACKGROUND SHAPES
+    ===================================================== */
+
+    .stApp::before {
+
+        content: "";
+
+        position: fixed;
+
+        width: 500px;
+
+        height: 500px;
+
+        background:
+            rgba(37,99,235,0.10);
+
+        border-radius: 50%;
+
+        top: -200px;
+
+        right: -120px;
+
+        filter: blur(40px);
+
+        z-index: 0;
+    }
+
+    .stApp::after {
+
+        content: "";
+
+        position: fixed;
+
+        width: 400px;
+
+        height: 400px;
+
+        background:
+            rgba(124,58,237,0.08);
+
+        border-radius: 50%;
+
+        bottom: -180px;
+
+        left: -100px;
+
+        filter: blur(40px);
+
+        z-index: 0;
     }
 
     /* =====================================================
@@ -71,95 +136,120 @@ def load_css():
 
     .block-container {
 
+        position: relative;
+
+        z-index: 1;
+
         padding-top: 5rem;
 
         padding-bottom: 2rem;
 
-        max-width: 98%;
-
-        margin: auto;
+        max-width: 96%;
     }
 
     /* =====================================================
-    TOP HEADER FIX
+    HEADER
     ===================================================== */
 
     header {
 
         background:
-            rgba(2,6,23,0.75) !important;
+            rgba(255,255,255,0.60) !important;
 
-        backdrop-filter: blur(10px);
+        backdrop-filter:
+            blur(16px);
+
+        border-bottom:
+            1px solid rgba(255,255,255,0.25);
     }
 
     /* =====================================================
-    TABS FIX
+    SIDEBAR
+    ===================================================== */
+
+    section[data-testid="stSidebar"] {
+
+        background:
+            rgba(255,255,255,0.60);
+
+        backdrop-filter:
+            blur(18px);
+
+        border-left:
+            1px solid rgba(255,255,255,0.30);
+    }
+
+    section[data-testid="stSidebar"] * {
+
+        direction: rtl !important;
+
+        text-align: right !important;
+    }
+
+    /* =====================================================
+    TABS
     ===================================================== */
 
     .stTabs {
 
-        direction: ltr;
-
-        margin-top: 10px;
-    }
-
-    .stTabs > div {
-
-        direction: rtl;
+        direction: rtl !important;
     }
 
     div[data-baseweb="tab-list"] {
 
         gap: 12px;
 
-        justify-content: flex-start;
-
         overflow-x: auto;
 
-        flex-wrap: nowrap;
-
-        padding:
-
-            12px
-            0
-            16px
-            0;
+        padding-bottom: 16px;
     }
 
     button[data-baseweb="tab"] {
 
-        height: 54px;
-
-        border-radius: 14px;
-
-        padding:
-            10px
-            24px;
-
-        font-size: 16px;
-
-        font-weight: 700;
-
-        color: white;
-
         background:
-            rgba(15,23,42,0.95);
+            rgba(255,255,255,0.65);
+
+        backdrop-filter:
+            blur(14px);
 
         border:
-            1px solid var(--border-color);
+            1px solid rgba(255,255,255,0.45);
 
-        transition: 0.25s;
+        border-radius:
+            18px;
 
-        min-width: 190px;
+        padding:
+            12px 24px;
+
+        min-width:
+            180px;
+
+        height:
+            58px;
+
+        font-size:
+            15px;
+
+        font-weight:
+            700;
+
+        color:
+            var(--text-main);
+
+        transition:
+            0.25s;
+
+        box-shadow:
+            0 4px 18px rgba(15,23,42,0.04);
     }
 
     button[data-baseweb="tab"]:hover {
 
-        background:
-            rgba(37,99,235,0.15);
+        transform:
+            translateY(-2px);
 
-        border-color:
-            rgba(37,99,235,0.4);
+        background:
+            rgba(255,255,255,0.88);
     }
 
     button[aria-selected="true"] {
@@ -168,13 +258,14 @@ def load_css():
             linear-gradient(
                 135deg,
                 #2563eb,
-                #1d4ed8
+                #4f46e5
             ) !important;
 
-        color: white !important;
+        color:
+            white !important;
 
         box-shadow:
-            0 4px 18px rgba(37,99,235,0.35);
+            0 10px 30px rgba(37,99,235,0.25);
     }
 
     /* =====================================================
@@ -184,34 +275,40 @@ def load_css():
     .card {
 
         background:
-            linear-gradient(
-                180deg,
-                rgba(15,23,42,0.98),
-                rgba(17,28,52,0.98)
-            );
+            rgba(255,255,255,0.65);
 
-        border-radius: 22px;
-
-        padding: 24px;
-
-        margin-bottom: 18px;
+        backdrop-filter:
+            blur(18px);
 
         border:
-            1px solid var(--border-color);
+            1px solid rgba(255,255,255,0.45);
+
+        border-radius:
+            var(--radius);
+
+        padding:
+            26px;
+
+        margin-bottom:
+            22px;
 
         box-shadow:
-            0 10px 30px rgba(0,0,0,0.22);
+            var(--shadow);
     }
 
     .card-title {
 
-        font-size: 24px;
+        font-size:
+            24px;
 
-        font-weight: 800;
+        font-weight:
+            800;
 
-        margin-bottom: 18px;
+        margin-bottom:
+            20px;
 
-        color: white;
+        color:
+            var(--text-main);
     }
 
     /* =====================================================
@@ -221,26 +318,52 @@ def load_css():
     div[data-testid="metric-container"] {
 
         background:
-            linear-gradient(
-                180deg,
-                rgba(15,23,42,0.98),
-                rgba(17,28,52,0.98)
-            );
+            rgba(255,255,255,0.70);
 
-        border-radius: 18px;
-
-        padding: 16px;
+        backdrop-filter:
+            blur(18px);
 
         border:
-            1px solid var(--border-color);
+            1px solid rgba(255,255,255,0.50);
+
+        border-radius:
+            24px;
+
+        padding:
+            18px;
 
         box-shadow:
-            0 4px 16px rgba(0,0,0,0.16);
+            0 8px 28px rgba(15,23,42,0.05);
+
+        transition:
+            0.25s;
+    }
+
+    div[data-testid="metric-container"]:hover {
+
+        transform:
+            translateY(-3px);
+
+        box-shadow:
+            0 12px 32px rgba(15,23,42,0.08);
     }
 
     div[data-testid="metric-container"] label {
 
-        color: var(--text-soft) !important;
+        color:
+            var(--text-soft) !important;
+
+        font-weight:
+            700 !important;
+    }
+
+    div[data-testid="metric-container"] [data-testid="stMetricValue"] {
+
+        color:
+            var(--text-main) !important;
+
+        font-weight:
+            800;
     }
 
     /* =====================================================
@@ -254,24 +377,31 @@ def load_css():
     .stSelectbox div[data-baseweb="select"] {
 
         background:
-            rgba(2,6,23,0.95) !important;
-
-        color:
-            white !important;
-
-        border-radius:
-            14px !important;
+            rgba(255,255,255,0.90) !important;
 
         border:
-            1px solid rgba(255,255,255,0.08) !important;
+            1px solid rgba(255,255,255,0.55) !important;
+
+        border-radius:
+            18px !important;
+
+        color:
+            var(--text-main) !important;
 
         min-height:
-            48px !important;
+            52px !important;
+
+        text-align:
+            right !important;
+
+        box-shadow:
+            inset 0 2px 4px rgba(15,23,42,0.02);
     }
 
     textarea {
 
-        min-height: 120px !important;
+        min-height:
+            120px !important;
     }
 
     /* =====================================================
@@ -281,45 +411,46 @@ def load_css():
     .stButton button,
     .stDownloadButton button {
 
-        width: 100%;
+        border:
+            none;
 
-        height: 52px;
+        border-radius:
+            18px;
 
-        border-radius: 14px;
+        height:
+            54px;
 
-        border: none;
+        font-size:
+            15px;
 
-        font-size: 15px;
+        font-weight:
+            800;
 
-        font-weight: 700;
+        color:
+            white;
 
         background:
             linear-gradient(
                 135deg,
                 #2563eb,
-                #1d4ed8
+                #4f46e5
             );
 
-        color: white;
-
-        transition: 0.25s;
-
         box-shadow:
-            0 4px 18px rgba(37,99,235,0.35);
+            0 10px 25px rgba(37,99,235,0.25);
+
+        transition:
+            0.25s;
     }
 
     .stButton button:hover,
     .stDownloadButton button:hover {
 
         transform:
-            translateY(-1px);
+            translateY(-2px);
 
-        background:
-            linear-gradient(
-                135deg,
-                #1d4ed8,
-                #1e40af
-            );
+        box-shadow:
+            0 14px 32px rgba(37,99,235,0.30);
     }
 
     /* =====================================================
@@ -329,14 +460,22 @@ def load_css():
     section[data-testid="stFileUploader"] {
 
         background:
-            rgba(15,23,42,0.92);
+            rgba(255,255,255,0.65);
 
-        border-radius: 18px;
-
-        padding: 18px;
+        backdrop-filter:
+            blur(18px);
 
         border:
-            1px dashed rgba(255,255,255,0.14);
+            2px dashed rgba(37,99,235,0.18);
+
+        border-radius:
+            24px;
+
+        padding:
+            24px;
+
+        box-shadow:
+            var(--shadow);
     }
 
     /* =====================================================
@@ -345,12 +484,44 @@ def load_css():
 
     .stDataFrame {
 
-        border-radius: 18px;
+        border-radius:
+            24px;
 
-        overflow: hidden;
+        overflow:
+            hidden;
 
         border:
-            1px solid rgba(255,255,255,0.08);
+            1px solid rgba(255,255,255,0.40);
+
+        box-shadow:
+            var(--shadow);
+    }
+
+    .stDataFrame table {
+
+        direction:
+            rtl !important;
+    }
+
+    .stDataFrame th {
+
+        background:
+            rgba(219,234,254,0.90) !important;
+
+        color:
+            #1e3a8a !important;
+
+        font-weight:
+            800 !important;
+
+        text-align:
+            right !important;
+    }
+
+    .stDataFrame td {
+
+        text-align:
+            right !important;
     }
 
     /* =====================================================
@@ -359,19 +530,14 @@ def load_css():
 
     .stAlert {
 
-        border-radius: 14px;
-    }
+        border-radius:
+            18px;
 
-    /* =====================================================
-    LABELS
-    ===================================================== */
+        border:
+            none;
 
-    label,
-    .stMarkdown,
-    p,
-    span {
-
-        color: var(--text-main);
+        box-shadow:
+            var(--shadow);
     }
 
     /* =====================================================
@@ -380,21 +546,57 @@ def load_css():
 
     ::-webkit-scrollbar {
 
-        width: 10px;
+        width:
+            10px;
 
-        height: 10px;
+        height:
+            10px;
     }
 
     ::-webkit-scrollbar-thumb {
 
-        background: #334155;
+        background:
+            #cbd5e1;
 
-        border-radius: 20px;
+        border-radius:
+            20px;
     }
 
     ::-webkit-scrollbar-track {
 
-        background: transparent;
+        background:
+            transparent;
+    }
+
+    /* =====================================================
+    MOBILE
+    ===================================================== */
+
+    @media (max-width: 768px) {
+
+        .block-container {
+
+            padding-top:
+                3rem;
+
+            max-width:
+                100%;
+        }
+
+        .card {
+
+            padding:
+                18px;
+        }
+
+        button[data-baseweb="tab"] {
+
+            min-width:
+                140px;
+
+            font-size:
+                13px;
+        }
     }
 
     </style>
