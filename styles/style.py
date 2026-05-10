@@ -45,25 +45,27 @@ def load_css():
     }
 
     /* =====================================================
-    PAGE
+    PAGE RTL
     ===================================================== */
 
     html,
     body,
     .stApp {
 
-        direction: rtl;
+        direction: rtl !important;
 
-        text-align: right;
+        text-align: right !important;
 
         font-family:
             "Segoe UI",
             Tahoma,
             sans-serif;
 
-        background-color: var(--bg-main);
+        background-color:
+            var(--bg-main);
 
-        color: var(--text-main);
+        color:
+            var(--text-main);
     }
 
     .stApp {
@@ -74,6 +76,26 @@ def load_css():
                 #f8fbff 0%,
                 #eef4ff 100%
             );
+    }
+
+    /* =====================================================
+    FORCE RTL
+    ===================================================== */
+
+    * {
+
+        direction: rtl;
+    }
+
+    .element-container,
+    .stMarkdown,
+    .stText,
+    p,
+    span,
+    div,
+    label {
+
+        text-align: right !important;
     }
 
     /* =====================================================
@@ -92,7 +114,7 @@ def load_css():
     }
 
     /* =====================================================
-    TOP HEADER
+    HEADER
     ===================================================== */
 
     header {
@@ -100,7 +122,8 @@ def load_css():
         background:
             rgba(255,255,255,0.88) !important;
 
-        backdrop-filter: blur(12px);
+        backdrop-filter:
+            blur(12px);
 
         border-bottom:
             1px solid rgba(15,23,42,0.05);
@@ -123,27 +146,38 @@ def load_css():
             1px solid rgba(15,23,42,0.05);
     }
 
+    section[data-testid="stSidebar"] * {
+
+        direction: rtl !important;
+
+        text-align: right !important;
+    }
+
     /* =====================================================
-    TABS
+    TABS RTL
     ===================================================== */
 
     .stTabs {
 
-        direction: ltr;
+        direction: rtl !important;
 
         margin-top: 12px;
     }
 
     .stTabs > div {
 
-        direction: rtl;
+        direction: rtl !important;
     }
 
     div[data-baseweb="tab-list"] {
 
-        gap: 12px;
+        direction: rtl !important;
+
+        display: flex;
 
         justify-content: flex-start;
+
+        gap: 12px;
 
         overflow-x: auto;
 
@@ -248,6 +282,8 @@ def load_css():
         margin-bottom: 18px;
 
         color: #0f172a;
+
+        text-align: right;
     }
 
     /* =====================================================
@@ -290,7 +326,7 @@ def load_css():
         color:
             var(--text-soft) !important;
 
-        font-weight: 600;
+        font-weight: 600 !important;
     }
 
     div[data-testid="metric-container"] [data-testid="stMetricValue"] {
@@ -326,6 +362,9 @@ def load_css():
         min-height:
             50px !important;
 
+        text-align:
+            right !important;
+
         box-shadow:
             inset 0 1px 3px rgba(15,23,42,0.03);
     }
@@ -334,17 +373,6 @@ def load_css():
 
         min-height:
             120px !important;
-    }
-
-    .stTextInput input:focus,
-    .stDateInput input:focus,
-    .stTextArea textarea:focus {
-
-        border:
-            1px solid rgba(59,130,246,0.4) !important;
-
-        box-shadow:
-            0 0 0 4px rgba(59,130,246,0.08) !important;
     }
 
     /* =====================================================
@@ -423,7 +451,7 @@ def load_css():
     }
 
     /* =====================================================
-    DATAFRAME
+    DATAFRAME RTL
     ===================================================== */
 
     .stDataFrame {
@@ -439,34 +467,25 @@ def load_css():
             var(--shadow);
     }
 
-    /* =====================================================
-    TABLE
-    ===================================================== */
+    .stDataFrame table {
 
-    table {
-
-        border-radius: 18px !important;
+        direction: rtl !important;
     }
 
-    thead tr th {
+    .stDataFrame th {
+
+        text-align: right !important;
 
         background:
             #eff6ff !important;
 
         color:
             #1e3a8a !important;
-
-        font-weight:
-            800 !important;
-
-        border-bottom:
-            1px solid rgba(59,130,246,0.15) !important;
     }
 
-    tbody tr:hover {
+    .stDataFrame td {
 
-        background:
-            rgba(59,130,246,0.04) !important;
+        text-align: right !important;
     }
 
     /* =====================================================
@@ -477,24 +496,10 @@ def load_css():
 
         border-radius: 16px;
 
-        border:
-            none;
+        border: none;
 
         box-shadow:
             var(--shadow);
-    }
-
-    /* =====================================================
-    LABELS
-    ===================================================== */
-
-    label,
-    .stMarkdown,
-    p,
-    span {
-
-        color:
-            var(--text-main);
     }
 
     /* =====================================================
@@ -526,48 +531,6 @@ def load_css():
 
         background:
             transparent;
-    }
-
-    /* =====================================================
-    EXPANDER
-    ===================================================== */
-
-    .streamlit-expanderHeader {
-
-        background:
-            white;
-
-        border-radius:
-            14px;
-
-        border:
-            1px solid rgba(15,23,42,0.06);
-    }
-
-    /* =====================================================
-    SELECTBOX
-    ===================================================== */
-
-    div[data-baseweb="select"] {
-
-        border-radius:
-            16px !important;
-    }
-
-    /* =====================================================
-    LOGIN BOX
-    ===================================================== */
-
-    .login-card {
-
-        max-width:
-            460px;
-
-        margin:
-            auto;
-
-        margin-top:
-            70px;
     }
 
     /* =====================================================
