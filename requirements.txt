@@ -3,5 +3,7 @@ pandas
 openpyxl
 xlsxwriter
 reportlab
-python-dateutil
+arabic-reshaper
+python-bidi
+Pillow
 numpy
