@@ -337,10 +337,6 @@ def build_attendance_pdf(df):
     # LOGO
     # =====================================================
 
-    # =====================================================
-    # LOGO
-    # =====================================================
-
     logo_path = os.path.join(
         os.getcwd(),
         "logos",
@@ -372,6 +368,7 @@ def build_attendance_pdf(df):
     else:
 
         print("LOGO NOT FOUND:", logo_path)
+
     # =====================================================
     # TITLES
     # =====================================================
@@ -470,10 +467,27 @@ def build_attendance_pdf(df):
     )
 
     late_df = data_df[
-        pd.to_numeric(
-            data_df["late_minutes"],
-            errors="coerce"
-        ).fillna(0) > 0
+
+        (
+            pd.to_numeric(
+                data_df["late_minutes"],
+                errors="coerce"
+            ).fillna(0) > 0
+        )
+
+        &
+
+        (
+            data_df["weekday"] != "Saturday"
+        )
+
+        &
+
+        (
+            ~data_df["status"]
+            .astype(str)
+            .str.contains("إجازة")
+        )
     ]
 
     if late_df.empty:
@@ -488,6 +502,8 @@ def build_attendance_pdf(df):
     else:
 
         table_data = [[
+
+            ar("الحالة"),
 
             ar("الإضافي"),
 
@@ -524,6 +540,12 @@ def build_attendance_pdf(df):
 
             table_data.append([
 
+                ar(
+                    safe_str(
+                        r.get("status")
+                    )
+                ),
+
                 minutes_to_hhmm(
                     r.get("overtime_minutes", 0)
                 ),
@@ -558,6 +580,7 @@ def build_attendance_pdf(df):
         attendance_table = Table(
             table_data,
             colWidths=[
+                70,
                 55,
                 72,
                 55,
@@ -651,6 +674,156 @@ def build_attendance_pdf(df):
         )
 
     # =====================================================
+    # LEAVES SECTION
+    # =====================================================
+
+    elements.append(
+        Spacer(1, 16)
+    )
+
+    elements.append(
+        Paragraph(
+            ar("الإجازات المعتمدة"),
+            section_style
+        )
+    )
+
+    leave_df = data_df[
+        data_df["status"]
+        .astype(str)
+        .str.contains("إجازة")
+    ]
+
+    if leave_df.empty:
+
+        elements.append(
+            Paragraph(
+                ar("لا توجد إجازات"),
+                normal_style
+            )
+        )
+
+    else:
+
+        leave_table = [[
+
+            ar("نوع الإجازة"),
+
+            ar("الحالة"),
+
+            ar("التاريخ"),
+
+            ar("اليوم"),
+        ]]
+
+        for _, r in leave_df.iterrows():
+
+            day_en = safe_str(
+                r.get("weekday")
+            )
+
+            day_ar = (
+                safe_str(
+                    r.get("weekday_ar")
+                )
+                or WEEKDAY_AR.get(
+                    day_en,
+                    day_en
+                )
+            )
+
+            leave_table.append([
+
+                ar(
+                    safe_str(
+                        r.get("leave_type")
+                    )
+                ),
+
+                ar(
+                    safe_str(
+                        r.get("status")
+                    )
+                ),
+
+                fmt_date(
+                    r.get("date")
+                ),
+
+                ar(day_ar),
+            ])
+
+        leaves_table = Table(
+            leave_table,
+            colWidths=[
+                120,
+                120,
+                100,
+                80
+            ],
+            repeatRows=1
+        )
+
+        leaves_table.setStyle(
+            TableStyle([
+
+                (
+                    "FONTNAME",
+                    (0, 0),
+                    (-1, -1),
+                    "Arabic"
+                ),
+
+                (
+                    "BACKGROUND",
+                    (0, 0),
+                    (-1, 0),
+                    colors.HexColor("#dcfce7")
+                ),
+
+                (
+                    "GRID",
+                    (0, 0),
+                    (-1, -1),
+                    0.25,
+                    colors.grey
+                ),
+
+                (
+                    "ALIGN",
+                    (0, 0),
+                    (-1, -1),
+                    "CENTER"
+                ),
+
+                (
+                    "VALIGN",
+                    (0, 0),
+                    (-1, -1),
+                    "MIDDLE"
+                ),
+
+                (
+                    "TOPPADDING",
+                    (0, 0),
+                    (-1, -1),
+                    4
+                ),
+
+                (
+                    "BOTTOMPADDING",
+                    (0, 0),
+                    (-1, -1),
+                    4
+                ),
+            ])
+        )
+
+        elements.append(
+            leaves_table
+        )
+
+    # =====================================================
     # TOTALS
     # =====================================================
 
@@ -658,17 +831,24 @@ def build_attendance_pdf(df):
         Spacer(1, 12)
     )
 
+    calc_df = data_df[
+
+        ~data_df["status"]
+        .astype(str)
+        .str.contains("إجازة")
+    ]
+
     total_late = int(
-        data_df["late_minutes"].sum()
-    ) if "late_minutes" in data_df.columns else 0
+        calc_df["late_minutes"].sum()
+    ) if "late_minutes" in calc_df.columns else 0
 
     total_early = int(
-        data_df["early_leave_minutes"].sum()
-    ) if "early_leave_minutes" in data_df.columns else 0
+        calc_df["early_leave_minutes"].sum()
+    ) if "early_leave_minutes" in calc_df.columns else 0
 
     total_overtime = int(
-        data_df["overtime_minutes"].sum()
-    ) if "overtime_minutes" in data_df.columns else 0
+        calc_df["overtime_minutes"].sum()
+    ) if "overtime_minutes" in calc_df.columns else 0
 
     elements.append(
         Paragraph(
