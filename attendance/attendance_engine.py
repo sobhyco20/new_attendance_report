@@ -536,7 +536,7 @@ def process_attendance(
 
     if "nationality" not in df.columns:
 
-    df["nationality"] = ""
+        df["nationality"] = ""
 
     # =====================================================
     # CLEAN
@@ -816,6 +816,9 @@ def process_attendance(
     # =====================================================
     # WORK HOURS
     # =====================================================
+    # =====================================================
+    # WORK HOURS
+    # =====================================================
     
     def calc_work_minutes(row):
     
@@ -823,14 +826,29 @@ def process_attendance(
             row.get("weekday", "")
         )
     
+        nationality = str(
+            row.get("nationality", "")
+        ).strip().lower()
+    
         # =================================================
         # SATURDAY
         # =================================================
     
-        # السبت بدون ساعات
         if weekday == "Saturday":
     
-            return 0
+            # السعودي السبت إجازة
+            if nationality in [
+    
+                "saudi",
+    
+                "saudi arabia",
+    
+                "سعودي",
+    
+                "السعودية"
+            ]:
+    
+                return 0
     
         # =================================================
         # NO PUNCH
