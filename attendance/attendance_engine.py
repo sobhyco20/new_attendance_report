@@ -481,11 +481,48 @@ def process_attendance(
     end_minutes = int(17 * 60)
 
     def calc_late(row):
-        if str(row.get("attendance_calculation", "")).lower() == "exempt":
+
+        # =====================================================
+        # EXEMPT
+        # =====================================================
+
+        if str(
+            row.get(
+                "attendance_calculation",
+                ""
+            )
+        ).lower() == "exempt":
+
             return 0
 
-        if pd.isna(row["first_punch"]):
+        # =====================================================
+        # SATURDAY EXEMPT
+        # =====================================================
+
+        weekday = str(
+            row.get(
+                "weekday",
+                ""
+            )
+        ).strip()
+
+        if weekday == "Saturday":
+
             return 0
+
+        # =====================================================
+        # NO PUNCH
+        # =====================================================
+
+        if pd.isna(
+            row["first_punch"]
+        ):
+
+            return 0
+
+        # =====================================================
+        # CALC
+        # =====================================================
 
         actual = (
             row["first_punch"].hour * 60
@@ -499,8 +536,35 @@ def process_attendance(
         )
 
     def calc_early_leave(row):
-        if pd.isna(row["last_punch"]):
+
+        # =====================================================
+        # SATURDAY EXEMPT
+        # =====================================================
+
+        weekday = str(
+            row.get(
+                "weekday",
+                ""
+            )
+        ).strip()
+
+        if weekday == "Saturday":
+
             return 0
+
+        # =====================================================
+        # NO PUNCH
+        # =====================================================
+
+        if pd.isna(
+            row["last_punch"]
+        ):
+
+            return 0
+
+        # =====================================================
+        # CALC
+        # =====================================================
 
         actual = (
             row["last_punch"].hour * 60
