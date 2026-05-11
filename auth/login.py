@@ -1,65 +1,168 @@
 import streamlit as st
 
-from styles.style import load_css
-
-from auth.login import require_login
-
-from attendance.attendance_ui import (
-    render_attendance_tab
-)
-
-from leaves.leaves_ui import (
-    render_leaves_tab
-)
-
 # =========================================================
-# PAGE CONFIG
+# USERS
 # =========================================================
 
-st.set_page_config(
+USERS = {
 
-    page_title="Attendance System",
+    "admin": "1234",
 
-    layout="wide"
-)
+    "mohamed": "1234",
+}
 
 # =========================================================
-# CSS
+# INIT SESSION
 # =========================================================
 
-load_css()
+def init_session():
+
+    if "logged_in" not in st.session_state:
+
+        st.session_state["logged_in"] = False
+
+    if "login_user" not in st.session_state:
+
+        st.session_state["login_user"] = ""
+
+    if "refresh_after_login" not in st.session_state:
+
+        st.session_state["refresh_after_login"] = False
+
+# =========================================================
+# CHECK USER
+# =========================================================
+
+def check_user(username, password):
+
+    username = str(username).strip()
+
+    password = str(password).strip()
+
+    return USERS.get(username) == password
 
 # =========================================================
 # LOGIN
 # =========================================================
 
-require_login(
-    "نظام الحضور والانصراف والإجازات"
-)
+def require_login(title="System"):
 
-# =========================================================
-# MAIN TABS
-# =========================================================
+    # =====================================================
+    # INIT
+    # =====================================================
 
-attendance_tab, leave_tab = st.tabs([
+    init_session()
 
-    "📊 الحضور والانصراف",
+    # =====================================================
+    # SAFE REFRESH
+    # =====================================================
 
-    "🏖️ الإجازات"
-])
+    if st.session_state.get("refresh_after_login"):
 
-# =========================================================
-# ATTENDANCE
-# =========================================================
+        st.session_state["refresh_after_login"] = False
 
-with attendance_tab:
+        st.rerun()
 
-    render_attendance_tab()
+    # =====================================================
+    # ALREADY LOGGED
+    # =====================================================
 
-# =========================================================
-# LEAVES
-# =========================================================
+    if st.session_state.get("logged_in"):
 
-with leave_tab:
+        with st.sidebar:
 
-    render_leaves_tab()
+            st.success(
+
+                f"👋 {st.session_state.get('login_user')}"
+            )
+
+            logout_btn = st.button(
+
+                "🚪 تسجيل الخروج",
+
+                use_container_width=True
+            )
+
+            if logout_btn:
+
+                st.session_state["logged_in"] = False
+
+                st.session_state["login_user"] = ""
+
+                st.rerun()
+
+        return
+
+    # =====================================================
+    # LOGIN SCREEN
+    # =====================================================
+
+    st.markdown(
+        f"""
+        <div style="
+            text-align:center;
+            padding:20px;
+            font-size:28px;
+            font-weight:bold;
+            color:white;
+        ">
+        {title}
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    c1, c2, c3 = st.columns([1,2,1])
+
+    with c2:
+
+        with st.container(border=True):
+
+            st.markdown(
+                "### 🔐 تسجيل الدخول"
+            )
+
+            username = st.text_input(
+                "اسم المستخدم"
+            )
+
+            password = st.text_input(
+                "كلمة المرور",
+                type="password"
+            )
+
+            login_btn = st.button(
+
+                "دخول",
+
+                use_container_width=True
+            )
+
+            if login_btn:
+
+                valid = check_user(
+                    username,
+                    password
+                )
+
+                if valid:
+
+                    st.session_state["logged_in"] = True
+
+                    st.session_state["login_user"] = username
+
+                    st.session_state["refresh_after_login"] = True
+
+                    st.success(
+                        "تم تسجيل الدخول بنجاح"
+                    )
+
+                    st.stop()
+
+                else:
+
+                    st.error(
+                        "اسم المستخدم أو كلمة المرور غير صحيحة"
+                    )
+
+    st.stop()
