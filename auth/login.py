@@ -92,6 +92,37 @@ def require_login(title="System"):
                 st.rerun()
 
         return
+# =========================================================
+# LOGIN
+# =========================================================
+
+def require_login(title="System"):
+
+    init_session()
+
+    # =====================================================
+    # USER ALREADY LOGGED IN
+    # =====================================================
+
+    if st.session_state.get("logged_in", False):
+
+        with st.sidebar:
+
+            st.success(
+                f"👋 {st.session_state.get('login_user')}"
+            )
+
+            if st.button(
+                "🚪 تسجيل الخروج",
+                use_container_width=True
+            ):
+
+                st.session_state["logged_in"] = False
+                st.session_state["login_user"] = ""
+
+                st.rerun()
+
+        return True
 
     # =====================================================
     # LOGIN SCREEN
@@ -102,11 +133,11 @@ def require_login(title="System"):
         <div style="
             text-align:center;
             padding:20px;
-            font-size:28px;
+            font-size:32px;
             font-weight:bold;
             color:white;
         ">
-        {title}
+            {title}
         </div>
         """,
         unsafe_allow_html=True
@@ -118,9 +149,7 @@ def require_login(title="System"):
 
         with st.container(border=True):
 
-            st.markdown(
-                "### 🔐 تسجيل الدخول"
-            )
+            st.markdown("### 🔐 تسجيل الدخول")
 
             username = st.text_input(
                 "اسم المستخدم"
@@ -131,38 +160,26 @@ def require_login(title="System"):
                 type="password"
             )
 
-            login_btn = st.button(
-
+            if st.button(
                 "دخول",
-
                 use_container_width=True
-            )
+            ):
 
-            if login_btn:
-
-                valid = check_user(
-                    username,
-                    password
-                )
-
-                if valid:
+                if check_user(username, password):
 
                     st.session_state["logged_in"] = True
-
                     st.session_state["login_user"] = username
 
-                    st.session_state["refresh_after_login"] = True
-
                     st.success(
-                        "تم تسجيل الدخول بنجاح"
+                        "✅ تم تسجيل الدخول بنجاح"
                     )
 
-                    st.stop()
+                    st.rerun()
 
                 else:
 
                     st.error(
-                        "اسم المستخدم أو كلمة المرور غير صحيحة"
+                        "❌ اسم المستخدم أو كلمة المرور غير صحيحة"
                     )
 
-    st.stop()
+    return False
