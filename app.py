@@ -2,8 +2,6 @@ import streamlit as st
 
 from styles.style import load_css
 
-from auth.login import require_login
-
 from attendance.attendance_ui import (
     render_attendance_tab
 )
@@ -17,7 +15,9 @@ from leaves.leaves_ui import (
 # =========================================================
 
 st.set_page_config(
+
     page_title="Attendance System",
+
     layout="wide"
 )
 
@@ -26,22 +26,6 @@ st.set_page_config(
 # =========================================================
 
 load_css()
-
-# =========================================================
-# LOGIN
-# =========================================================
-
-logged = require_login(
-    "نظام الحضور والانصراف والإجازات"
-)
-
-# =========================================================
-# STOP IF NOT LOGGED
-# =========================================================
-
-if not logged:
-
-    st.stop()
 
 # =========================================================
 # MAIN TABS
