@@ -227,9 +227,12 @@ def is_workday(
 ):
 
     weekday = day.day_name()
-
+    
     nationality = str(
-        nationality or ""
+        row.get(
+            "nationality",
+            ""
+        ) or ""
     ).strip().lower()
 
     # الجمعة إجازة للجميع
@@ -977,16 +980,37 @@ def process_attendance(
         end=pd.to_datetime(period_end),
         freq="D"
     )
-
-    employees = df[
-        [
+        
+        # =====================================================
+        # EMPLOYEES
+        # =====================================================
+        
+        emp_cols = [
+        
             "employee_id",
+        
             "employee_name",
+        
             "department",
-            "nationality",
+        
             "attendance_calculation",
         ]
-    ].drop_duplicates()
+        
+        # الجنسية اختيارية
+        if "nationality" in df.columns:
+        
+            emp_cols.append(
+                "nationality"
+            )
+        
+        employees = df[
+            emp_cols
+        ].drop_duplicates()
+        
+        # إذا لا يوجد جنسية
+        if "nationality" not in employees.columns:
+        
+            employees["nationality"] = ""
 
     final_rows = []
 
@@ -1102,7 +1126,10 @@ def process_attendance(
 
                     "department": emp["department"],
 
-                    "nationality": emp["nationality"],
+                    "nationality": emp.get(
+                        "nationality",
+                        ""
+                    ),
 
                     "attendance_calculation": attendance_rule,
 
