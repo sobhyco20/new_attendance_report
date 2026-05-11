@@ -595,16 +595,21 @@ def process_attendance(
     if employees_df is not None and not employees_df.empty:
 
         emp = employees_df.copy()
-
+        
         emp = emp.rename(columns={
-
+        
             "Personnel Number": "employee_id",
-
+        
             "Arabic name": "employee_name",
-
+        
             "Section | Department": "department",
+        
             "Nationality": "nationality",
-
+        
+            "nationality": "nationality",
+        
+            "الجنسية": "nationality",
+        
             "attendance_calculation": "attendance_calculation",
         })
 
@@ -616,19 +621,24 @@ def process_attendance(
         if "attendance_calculation" not in emp.columns:
 
             emp["attendance_calculation"] = "normal"
-
-        keep_cols = [
-        
-            "employee_id",
-        
-            "employee_name",
-        
-            "department",
-        
-            "nationality",
-        
-            "attendance_calculation",
-        ]
+            
+            keep_cols = [
+            
+                "employee_id",
+            
+                "employee_name",
+            
+                "department",
+            
+                "attendance_calculation",
+            ]
+            
+            # إضافة الجنسية إذا موجودة
+            if "nationality" in emp.columns:
+            
+                keep_cols.append(
+                    "nationality"
+                )
 
         emp = emp[
             keep_cols
