@@ -647,8 +647,46 @@ def process_attendance(
 
     df["leave_type"] = ""
 
-    df["status"] = df["late_minutes"].apply(
-        lambda x: "متأخر" if x > 0 else "حاضر"
+    # =====================================================
+    # STATUS
+    # =====================================================
+    
+    def calc_status(row):
+    
+        weekday = str(
+            row.get(
+                "weekday",
+                ""
+            )
+        ).strip()
+    
+        # =================================================
+        # SATURDAY
+        # =================================================
+    
+        if weekday == "Saturday":
+    
+            if pd.isna(
+                row.get("first_punch")
+            ):
+    
+                return "غائب"
+    
+            return "حاضر"
+    
+        # =================================================
+        # NORMAL DAYS
+        # =================================================
+    
+        if row.get("late_minutes", 0) > 0:
+    
+            return "متأخر"
+    
+        return "حاضر"
+    
+    df["status"] = df.apply(
+        calc_status,
+        axis=1
     )
 
     all_days = pd.date_range(
