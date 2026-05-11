@@ -309,11 +309,18 @@ def process_attendance(
         df["employee_id"]
         .apply(normalize_id)
     )
-
+    
     df["date"] = pd.to_datetime(
         df["date"],
         errors="coerce"
-    ).dt.normalize()
+    )
+    
+    # حذف الصفوف التي لا تحتوي تاريخ صحيح
+    df = df[
+        df["date"].notna()
+    ].copy()
+    
+    df["date"] = df["date"].dt.floor("D")
 
     df["first_punch"] = parse_time_col(
         df["first_punch"]
