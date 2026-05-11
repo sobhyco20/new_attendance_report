@@ -1053,7 +1053,7 @@ def process_attendance(
                     "leave_type": leave_type,
 
                     "status": (
-                        "إجازة"
+                        f"إجازة - {leave_type}"
                         if is_leave
                         else "غائب"
                     ),
