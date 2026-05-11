@@ -1,26 +1,17 @@
+```python
 import pandas as pd
 
 from database.leaves_db import load_leaves_db
 
 
-# =========================================================
-# WEEKDAYS
-# =========================================================
-
 WEEKDAY_AR = {
 
     "Saturday": "السبت",
-
     "Sunday": "الأحد",
-
     "Monday": "الإثنين",
-
     "Tuesday": "الثلاثاء",
-
     "Wednesday": "الأربعاء",
-
     "Thursday": "الخميس",
-
     "Friday": "الجمعة",
 }
 
@@ -73,11 +64,7 @@ def minutes_to_hhmm(minutes):
 
     try:
 
-        if pd.isna(minutes):
-
-            minutes = 0
-
-        minutes = int(float(minutes))
+        minutes = int(minutes or 0)
 
     except Exception:
 
@@ -87,11 +74,7 @@ def minutes_to_hhmm(minutes):
 
     minutes = abs(minutes)
 
-    hours = int(minutes // 60)
-
-    mins = int(minutes % 60)
-
-    return f"{sign}{hours:02}:{mins:02}"
+    return f"{sign}{minutes // 60:02}:{minutes % 60:02}"
 
 
 # =========================================================
@@ -101,118 +84,12 @@ def minutes_to_hhmm(minutes):
 def parse_time_col(series):
 
     return pd.to_datetime(
+
         series.astype(str).str.strip(),
+
         format="%H:%M:%S",
+
         errors="coerce"
-    )
-
-
-# =========================================================
-# PERIOD
-# =========================================================
-
-def get_attendance_period(any_date):
-
-    d = pd.to_datetime(any_date)
-
-    if d.day >= 8:
-
-        start_date = pd.Timestamp(
-            year=d.year,
-            month=d.month,
-            day=8
-        )
-
-        if d.month == 12:
-
-            end_date = pd.Timestamp(
-                year=d.year + 1,
-                month=1,
-                day=7
-            )
-
-        else:
-
-            end_date = pd.Timestamp(
-                year=d.year,
-                month=d.month + 1,
-                day=7
-            )
-
-    else:
-
-        end_date = pd.Timestamp(
-            year=d.year,
-            month=d.month,
-            day=7
-        )
-
-        if d.month == 1:
-
-            start_date = pd.Timestamp(
-                year=d.year - 1,
-                month=12,
-                day=8
-            )
-
-        else:
-
-            start_date = pd.Timestamp(
-                year=d.year,
-                month=d.month - 1,
-                day=8
-            )
-
-    return start_date, end_date
-
-
-# =========================================================
-# RULES
-# =========================================================
-
-def normalize_rule(value):
-
-    rule = str(value or "").strip().lower()
-
-    if rule in ["", "nan", "none", "arrival", "normal"]:
-
-        return "normal"
-
-    if rule in [
-        "saturday",
-        "saturday_work",
-        "sat_work",
-        "دوام السبت"
-    ]:
-
-        return "saturday_work"
-
-    if rule in [
-        "no_absence",
-        "no absence",
-        "بدون غياب"
-    ]:
-
-        return "no_absence"
-
-    if rule in [
-        "exempt",
-        "استثناء",
-        "مستثنى"
-    ]:
-
-        return "exempt"
-
-    return "normal"
-
-
-def get_attendance_rule(emp_row):
-
-    return normalize_rule(
-        emp_row.get(
-            "attendance_calculation",
-            "normal"
-        )
     )
 
 
@@ -220,19 +97,12 @@ def get_attendance_rule(emp_row):
 # WORKDAY
 # =========================================================
 
-def is_workday(
-    day,
-    attendance_rule="normal",
-    nationality=""
-):
+def is_workday(day, nationality=""):
 
     weekday = day.day_name()
-    
+
     nationality = str(
-        row.get(
-            "nationality",
-            ""
-        ) or ""
+        nationality or ""
     ).strip().lower()
 
     # الجمعة إجازة للجميع
@@ -267,7 +137,7 @@ def is_workday(
 # LEAVES
 # =========================================================
 
-def prepare_leaves(period_start, period_end):
+def prepare_leaves():
 
     leaves = load_leaves_db()
 
@@ -278,8 +148,11 @@ def prepare_leaves(period_start, period_end):
     leaves = leaves.copy()
 
     for c in [
+
         "employee_id",
+
         "leave_type",
+
         "status",
     ]:
 
@@ -302,38 +175,6 @@ def prepare_leaves(period_start, period_end):
         errors="coerce"
     ).dt.normalize()
 
-    leaves["status"] = (
-        leaves["status"]
-        .astype(str)
-        .str.strip()
-        .str.lower()
-    )
-
-    approved_values = [
-
-        "",
-
-        "approved",
-
-        "معتمد",
-
-        "معتمدة",
-
-        "active",
-    ]
-
-    leaves = leaves[
-        leaves["status"].isin(
-            approved_values
-        )
-    ].copy()
-
-    leaves = leaves[
-        (leaves["end_date"] >= period_start)
-        &
-        (leaves["start_date"] <= period_end)
-    ].copy()
-
     return leaves
 
 
@@ -343,7 +184,7 @@ def find_leave_for_day(
     day
 ):
 
-    if leaves_df is None or leaves_df.empty:
+    if leaves_df.empty:
 
         return False, ""
 
@@ -374,11 +215,7 @@ def find_leave_for_day(
             "leave_type",
             "إجازة"
         )
-    ).strip()
-
-    if not leave_type:
-
-        leave_type = "إجازة"
+    )
 
     return True, leave_type
 
@@ -454,16 +291,12 @@ def process_attendance(
 
     employee_id_col = find_column(
         df,
-        ["Employee ID", "employee_id"]
+        ["Employee ID"]
     )
 
     employee_name_col = find_column(
         df,
-        [
-            "First Name",
-            "Employee Name",
-            "Name"
-        ]
+        ["First Name"]
     )
 
     department_col = find_column(
@@ -490,6 +323,10 @@ def process_attendance(
 
         employee_id_col: "employee_id",
 
+        employee_name_col: "employee_name",
+
+        department_col: "department",
+
         date_col: "date",
 
         first_punch_col: "first_punch",
@@ -497,38 +334,10 @@ def process_attendance(
         last_punch_col: "last_punch",
     }
 
-    if employee_name_col:
-
-        rename_map[
-            employee_name_col
-        ] = "employee_name"
-
-    if department_col:
-
-        rename_map[
-            department_col
-        ] = "department"
-
     df.rename(
         columns=rename_map,
         inplace=True
     )
-
-    # =====================================================
-    # DEFAULTS
-    # =====================================================
-
-    if "employee_name" not in df.columns:
-
-        df["employee_name"] = ""
-
-    if "department" not in df.columns:
-
-        df["department"] = ""
-
-    if "nationality" not in df.columns:
-
-        df["nationality"] = ""
 
     # =====================================================
     # CLEAN
@@ -541,7 +350,6 @@ def process_attendance(
 
     df["date"] = pd.to_datetime(
         df["date"],
-        dayfirst=True,
         errors="coerce"
     ).dt.normalize()
 
@@ -551,33 +359,6 @@ def process_attendance(
 
     df["last_punch"] = parse_time_col(
         df["last_punch"]
-    )
-
-    df = df.dropna(
-        subset=[
-            "employee_id",
-            "date"
-        ]
-    ).copy()
-
-    # =====================================================
-    # GROUP
-    # =====================================================
-
-    df = (
-        df.groupby(
-            [
-                "employee_id",
-                "employee_name",
-                "department",
-                "date"
-            ],
-            as_index=False
-        )
-        .agg(
-            first_punch=("first_punch", "min"),
-            last_punch=("last_punch", "max"),
-        )
     )
 
     # =====================================================
@@ -594,57 +375,26 @@ def process_attendance(
 
             "Arabic name": "employee_name",
 
-            "Employee Name Arabic": "employee_name",
-
-            "Section | Department": "department",
-
-            "Department": "department",
-
             "Nationality": "nationality",
 
-            "nationality": "nationality",
-
             "الجنسية": "nationality",
-
-            "attendance_calculation": "attendance_calculation",
         })
-
-        if "employee_name" not in emp.columns:
-
-            emp["employee_name"] = ""
-
-        if "department" not in emp.columns:
-
-            emp["department"] = ""
 
         if "nationality" not in emp.columns:
 
             emp["nationality"] = ""
-
-        if "attendance_calculation" not in emp.columns:
-
-            emp["attendance_calculation"] = "normal"
 
         emp["employee_id"] = (
             emp["employee_id"]
             .apply(normalize_id)
         )
 
-        keep_cols = [
-
-            "employee_id",
-
-            "employee_name",
-
-            "department",
-
-            "nationality",
-
-            "attendance_calculation",
-        ]
-
         emp = emp[
-            keep_cols
+            [
+                "employee_id",
+                "employee_name",
+                "nationality"
+            ]
         ].drop_duplicates()
 
         df = df.merge(
@@ -661,56 +411,28 @@ def process_attendance(
         if "employee_name_emp" in df.columns:
 
             df["employee_name"] = (
-
                 df["employee_name_emp"]
-
                 .fillna(df["employee_name"])
             )
 
-        if "department_emp" in df.columns:
+        if "nationality" not in df.columns:
 
-            df["department"] = (
+            df["nationality"] = ""
 
-                df["department_emp"]
+    else:
 
-                .fillna(df["department"])
-            )
-
-        if "nationality_emp" in df.columns:
-
-            df["nationality"] = (
-
-                df["nationality_emp"]
-
-                .fillna("")
-            )
+        df["nationality"] = ""
 
     # =====================================================
-    # RULES
+    # WEEKDAY
     # =====================================================
 
-    if "attendance_calculation" not in df.columns:
-
-        df["attendance_calculation"] = "normal"
-
-    df["attendance_calculation"] = (
-        df["attendance_calculation"]
-        .apply(normalize_rule)
+    df["weekday"] = (
+        df["date"].dt.day_name()
     )
 
-    # =====================================================
-    # PERIOD
-    # =====================================================
-
-    period_start, period_end = (
-        get_attendance_period(
-            df["date"].min()
-        )
-    )
-
-    leaves_df = prepare_leaves(
-        period_start,
-        period_end
+    df["weekday_ar"] = (
+        df["weekday"].map(WEEKDAY_AR)
     )
 
     # =====================================================
@@ -734,22 +456,10 @@ def process_attendance(
     late_limit_minutes = (
         start_minutes
         +
-        int(float(grace_minutes))
+        int(grace_minutes)
     )
 
     end_minutes = 17 * 60
-
-    # =====================================================
-    # WEEKDAY
-    # =====================================================
-
-    df["weekday"] = (
-        df["date"].dt.day_name()
-    )
-
-    df["weekday_ar"] = (
-        df["weekday"].map(WEEKDAY_AR)
-    )
 
     # =====================================================
     # LATE
@@ -757,11 +467,7 @@ def process_attendance(
 
     def calc_late(row):
 
-        weekday = str(
-            row.get("weekday", "")
-        )
-
-        if weekday == "Saturday":
+        if row["weekday"] == "Saturday":
 
             return 0
 
@@ -777,20 +483,16 @@ def process_attendance(
 
         return max(
             0,
-            int(actual - late_limit_minutes)
+            actual - late_limit_minutes
         )
 
     # =====================================================
-    # EARLY LEAVE
+    # EARLY
     # =====================================================
 
-    def calc_early_leave(row):
+    def calc_early(row):
 
-        weekday = str(
-            row.get("weekday", "")
-        )
-
-        if weekday == "Saturday":
+        if row["weekday"] == "Saturday":
 
             return 0
 
@@ -806,20 +508,16 @@ def process_attendance(
 
         return max(
             0,
-            int(end_minutes - actual)
+            end_minutes - actual
         )
 
     # =====================================================
     # OVERTIME
     # =====================================================
 
-    def calc_overtime(row):
+    def calc_ot(row):
 
-        weekday = str(
-            row.get("weekday", "")
-        )
-
-        if weekday == "Saturday":
+        if row["weekday"] == "Saturday":
 
             return 0
 
@@ -835,37 +533,32 @@ def process_attendance(
 
         return max(
             0,
-            int(actual - end_minutes)
+            actual - end_minutes
         )
 
     # =====================================================
     # WORK HOURS
     # =====================================================
 
-    def calc_work_minutes(row):
-
-        weekday = str(
-            row.get("weekday", "")
-        )
+    def calc_work(row):
 
         nationality = str(
             row.get("nationality", "")
         ).strip().lower()
 
-        if weekday == "Saturday":
-
-            if nationality in [
-
+        # السعودي السبت إجازة
+        if (
+            row["weekday"] == "Saturday"
+            and
+            nationality in [
                 "saudi",
-
                 "saudi arabia",
-
                 "سعودي",
-
                 "السعودية"
-            ]:
+            ]
+        ):
 
-                return 0
+            return 0
 
         if pd.isna(row["first_punch"]):
 
@@ -881,11 +574,10 @@ def process_attendance(
             row["first_punch"]
         )
 
-        minutes = int(
-            diff.total_seconds() // 60
+        return max(
+            0,
+            int(diff.total_seconds() // 60)
         )
-
-        return max(0, minutes)
 
     # =====================================================
     # CALCULATIONS
@@ -897,28 +589,23 @@ def process_attendance(
     )
 
     df["early_leave_minutes"] = df.apply(
-        calc_early_leave,
+        calc_early,
         axis=1
     )
 
     df["overtime_minutes"] = df.apply(
-        calc_overtime,
+        calc_ot,
         axis=1
     )
 
     df["worked_minutes"] = df.apply(
-        calc_work_minutes,
+        calc_work,
         axis=1
     )
 
     # =====================================================
     # FORMAT
     # =====================================================
-
-    df["work_hours"] = (
-        df["worked_minutes"]
-        .apply(minutes_to_hhmm)
-    )
 
     df["late_hhmm"] = (
         df["late_minutes"]
@@ -935,259 +622,78 @@ def process_attendance(
         .apply(minutes_to_hhmm)
     )
 
-    # =====================================================
-    # STATUS
-    # =====================================================
-
-    def calc_status(row):
-
-        weekday = str(
-            row.get(
-                "weekday",
-                ""
-            )
-        ).strip()
-
-        if weekday == "Saturday":
-
-            if pd.isna(
-                row.get("first_punch")
-            ):
-
-                return "غائب"
-
-            return "حاضر"
-
-        if row.get("late_minutes", 0) > 0:
-
-            return "متأخر"
-
-        return "حاضر"
-
-    df["status"] = df.apply(
-        calc_status,
-        axis=1
+    df["work_hours"] = (
+        df["worked_minutes"]
+        .apply(minutes_to_hhmm)
     )
 
-    df["leave_type"] = ""
-
     # =====================================================
-    # ALL DAYS
+    # LEAVES
     # =====================================================
 
-    all_days = pd.date_range(
-        start=pd.to_datetime(period_start),
-        end=pd.to_datetime(period_end),
-        freq="D"
-    )
-        
-        # =====================================================
-        # EMPLOYEES
-        # =====================================================
-        
-        emp_cols = [
-        
-            "employee_id",
-        
-            "employee_name",
-        
-            "department",
-        
-            "attendance_calculation",
-        ]
-        
-        # الجنسية اختيارية
-        if "nationality" in df.columns:
-        
-            emp_cols.append(
-                "nationality"
+    leaves_df = prepare_leaves()
+
+    statuses = []
+
+    leave_types = []
+
+    for _, row in df.iterrows():
+
+        is_leave, leave_type = (
+            find_leave_for_day(
+                leaves_df,
+                row["employee_id"],
+                row["date"]
             )
-                
-        employees = df[
-            emp_cols
-        ].drop_duplicates()
-        
-        # إذا لا يوجد جنسية
-        if "nationality" not in employees.columns:
-        
-            employees["nationality"] = ""
-
-    final_rows = []
-
-    # =====================================================
-    # LOOP
-    # =====================================================
-
-    for _, emp in employees.iterrows():
-
-        emp_id = normalize_id(
-            emp["employee_id"]
         )
 
-        attendance_rule = (
-            get_attendance_rule(emp)
-        )
+        if is_leave:
 
-        emp_df = df[
-            df["employee_id"]
-            .apply(normalize_id) == emp_id
-        ].copy()
+            statuses.append(
+                f"إجازة - {leave_type}"
+            )
 
-        for day in all_days:
+            leave_types.append(
+                leave_type
+            )
 
-            if not is_workday(
+        else:
 
-                day,
+            if row["weekday"] == "Saturday":
 
-                attendance_rule,
+                if pd.isna(
+                    row["first_punch"]
+                ):
 
-                emp.get("nationality", "")
-            ):
-
-                continue
-
-            existing = emp_df[
-                emp_df["date"].dt.date
-                ==
-                day.date()
-            ]
-
-            # =================================================
-            # HAS ATTENDANCE
-            # =================================================
-
-            if not existing.empty:
-
-                row_data = (
-                    existing.iloc[0].to_dict()
-                )
-
-                is_leave, leave_type = (
-                    find_leave_for_day(
-                        leaves_df,
-                        emp_id,
-                        day
-                    )
-                )
-
-                if is_leave:
-
-                    row_data["status"] = (
-                        f"إجازة - {leave_type}"
+                    statuses.append(
+                        "غائب"
                     )
 
-                    row_data["leave_type"] = leave_type
+                else:
 
-                    row_data["worked_minutes"] = 0
-
-                    row_data["work_hours"] = "00:00"
-
-                    row_data["late_minutes"] = 0
-
-                    row_data["early_leave_minutes"] = 0
-
-                    row_data["overtime_minutes"] = 0
-
-                    row_data["late_hhmm"] = "00:00"
-
-                    row_data["early_leave_hhmm"] = "00:00"
-
-                    row_data["overtime_hhmm"] = "00:00"
-
-                final_rows.append(
-                    row_data
-                )
-
-            # =================================================
-            # NO ATTENDANCE
-            # =================================================
+                    statuses.append(
+                        "حاضر"
+                    )
 
             else:
 
-                if attendance_rule == "no_absence":
+                if row["late_minutes"] > 0:
 
-                    continue
-
-                is_leave, leave_type = (
-                    find_leave_for_day(
-                        leaves_df,
-                        emp_id,
-                        day
+                    statuses.append(
+                        "متأخر"
                     )
-                )
 
-                weekday = day.day_name()
+                else:
 
-                final_rows.append({
+                    statuses.append(
+                        "حاضر"
+                    )
 
-                    "employee_id": emp_id,
+            leave_types.append("")
 
-                    "employee_name": emp["employee_name"],
+    df["status"] = statuses
 
-                    "department": emp["department"],
+    df["leave_type"] = leave_types
 
-                    "nationality": emp.get(
-                        "nationality",
-                        ""
-                    ),
-
-                    "attendance_calculation": attendance_rule,
-
-                    "date": day,
-
-                    "weekday": weekday,
-
-                    "weekday_ar": WEEKDAY_AR.get(
-                        weekday,
-                        weekday
-                    ),
-
-                    "first_punch": pd.NaT,
-
-                    "last_punch": pd.NaT,
-
-                    "worked_minutes": 0,
-
-                    "work_hours": "00:00",
-
-                    "late_minutes": 0,
-
-                    "early_leave_minutes": 0,
-
-                    "overtime_minutes": 0,
-
-                    "late_hhmm": "00:00",
-
-                    "early_leave_hhmm": "00:00",
-
-                    "overtime_hhmm": "00:00",
-
-                    "leave_type": leave_type,
-
-                    "status": (
-                        f"إجازة - {leave_type}"
-                        if is_leave
-                        else "غائب"
-                    ),
-                })
-
-    # =====================================================
-    # FINAL
-    # =====================================================
-
-    final_df = pd.DataFrame(
-        final_rows
-    )
-
-    if final_df.empty:
-
-        return final_df
-
-    final_df = final_df.sort_values(
-        [
-            "date",
-            "employee_id"
-        ]
-    ).reset_index(drop=True)
-
-    return final_df
+    return df
+```
