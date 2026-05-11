@@ -762,7 +762,7 @@ def process_attendance(
             0,
             int(actual - end_minutes)
             )
-    
+        
     # =====================================================
     # WORK HOURS
     # =====================================================
@@ -773,17 +773,18 @@ def process_attendance(
             row.get("weekday", "")
         )
     
+        # =================================================
+        # SATURDAY
+        # =================================================
+    
         # السبت بدون ساعات
         if weekday == "Saturday":
     
             return 0
     
-        # إجازة
-        if str(
-            row.get("status", "")
-        ) == "إجازة":
-    
-            return 0
+        # =================================================
+        # NO PUNCH
+        # =================================================
     
         if pd.isna(row["first_punch"]):
     
@@ -792,6 +793,10 @@ def process_attendance(
         if pd.isna(row["last_punch"]):
     
             return 0
+    
+        # =================================================
+        # CALC
+        # =================================================
     
         diff = (
             row["last_punch"]
@@ -961,22 +966,28 @@ def process_attendance(
                     )
                 )
 
+                
                 if is_leave:
-
-                    row_data["status"] = "إجازة"
-
+                
+                    row_data["status"] = f"إجازة - {leave_type}"
+                
                     row_data["leave_type"] = leave_type
-
+                
+                    # تصفير كل الحسابات
+                    row_data["worked_minutes"] = 0
+                
+                    row_data["work_hours"] = "00:00"
+                
                     row_data["late_minutes"] = 0
-
+                
                     row_data["early_leave_minutes"] = 0
-
+                
                     row_data["overtime_minutes"] = 0
-
+                
                     row_data["late_hhmm"] = "00:00"
-
+                
                     row_data["early_leave_hhmm"] = "00:00"
-
+                
                     row_data["overtime_hhmm"] = "00:00"
 
                 final_rows.append(
