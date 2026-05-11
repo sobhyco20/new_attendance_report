@@ -1002,7 +1002,7 @@ def process_attendance(
             emp_cols.append(
                 "nationality"
             )
-        
+                
         employees = df[
             emp_cols
         ].drop_duplicates()
