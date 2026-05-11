@@ -1,149 +1,65 @@
 import streamlit as st
 
-# =========================================================
-# USERS
-# =========================================================
+from styles.style import load_css
 
-USERS = {
+from auth.login import require_login
 
-    "admin": "1234",
+from attendance.attendance_ui import (
+    render_attendance_tab
+)
 
-    "mohamed": "1234",
-}
-
-# =========================================================
-# INIT SESSION
-# =========================================================
-
-def init_session():
-
-    if "logged_in" not in st.session_state:
-
-        st.session_state["logged_in"] = False
-
-    if "login_user" not in st.session_state:
-
-        st.session_state["login_user"] = ""
+from leaves.leaves_ui import (
+    render_leaves_tab
+)
 
 # =========================================================
-# CHECK USER
+# PAGE CONFIG
 # =========================================================
 
-def check_user(username, password):
+st.set_page_config(
 
-    username = str(username).strip()
+    page_title="Attendance System",
 
-    password = str(password).strip()
+    layout="wide"
+)
 
-    return USERS.get(username) == password
+# =========================================================
+# CSS
+# =========================================================
+
+load_css()
 
 # =========================================================
 # LOGIN
 # =========================================================
 
-def require_login(title="System"):
+require_login(
+    "نظام الحضور والانصراف والإجازات"
+)
 
-    # =============================================
-    # INIT
-    # =============================================
+# =========================================================
+# MAIN TABS
+# =========================================================
 
-    init_session()
+attendance_tab, leave_tab = st.tabs([
 
-    # =============================================
-    # LOGGED IN
-    # =============================================
+    "📊 الحضور والانصراف",
 
-    if st.session_state.get("logged_in", False):
+    "🏖️ الإجازات"
+])
 
-        with st.sidebar:
+# =========================================================
+# ATTENDANCE
+# =========================================================
 
-            st.success(
+with attendance_tab:
 
-                f"👋 {st.session_state.get('login_user', '')}"
-            )
+    render_attendance_tab()
 
-            logout_btn = st.button(
+# =========================================================
+# LEAVES
+# =========================================================
 
-                "🚪 تسجيل الخروج",
+with leave_tab:
 
-                use_container_width=True
-            )
-
-            if logout_btn:
-
-                st.session_state["logged_in"] = False
-
-                st.session_state["login_user"] = ""
-
-                st.rerun()
-
-        return True
-
-    # =============================================
-    # LOGIN SCREEN
-    # =============================================
-
-    st.markdown(
-        f"""
-        <div style="
-            text-align:center;
-            padding:20px;
-            font-size:28px;
-            font-weight:bold;
-        ">
-        {title}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    c1, c2, c3 = st.columns([1,2,1])
-
-    with c2:
-
-        with st.container(border=True):
-
-            st.markdown(
-                "### 🔐 تسجيل الدخول"
-            )
-
-            username = st.text_input(
-                "اسم المستخدم"
-            )
-
-            password = st.text_input(
-                "كلمة المرور",
-                type="password"
-            )
-
-            login_btn = st.button(
-
-                "دخول",
-
-                use_container_width=True
-            )
-
-            if login_btn:
-
-                if check_user(
-                    username,
-                    password
-                ):
-
-                    st.session_state["logged_in"] = True
-
-                    st.session_state["login_user"] = username
-
-                    st.success(
-                        "تم تسجيل الدخول بنجاح"
-                    )
-
-                    st.rerun()
-
-                else:
-
-                    st.error(
-                        "اسم المستخدم أو كلمة المرور غير صحيحة"
-                    )
-
-    st.stop()
+    render_leaves_tab()
