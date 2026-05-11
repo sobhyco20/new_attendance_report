@@ -1,17 +1,26 @@
 import pandas as pd
 
-from attendance.attendance_helpers import normalize_emp_id
-
 from database.leaves_db import load_leaves_db
 
 
+# =========================================================
+# WEEKDAYS
+# =========================================================
+
 WEEKDAY_AR = {
+
     "Saturday": "السبت",
+
     "Sunday": "الأحد",
+
     "Monday": "الإثنين",
+
     "Tuesday": "الثلاثاء",
+
     "Wednesday": "الأربعاء",
+
     "Thursday": "الخميس",
+
     "Friday": "الجمعة",
 }
 
@@ -240,6 +249,17 @@ def prepare_leaves(period_start, period_end):
 
     leaves = leaves.copy()
 
+    # أعمدة افتراضية
+    for c in [
+        "employee_id",
+        "leave_type",
+        "status",
+    ]:
+
+        if c not in leaves.columns:
+
+            leaves[c] = ""
+
     leaves["employee_id"] = (
         leaves["employee_id"]
         .apply(normalize_id)
@@ -255,6 +275,34 @@ def prepare_leaves(period_start, period_end):
         errors="coerce"
     ).dt.normalize()
 
+    # المعتمد فقط
+    leaves["status"] = (
+        leaves["status"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+    )
+
+    approved_values = [
+
+        "",
+
+        "approved",
+
+        "معتمد",
+
+        "معتمدة",
+
+        "active",
+    ]
+
+    leaves = leaves[
+        leaves["status"].isin(
+            approved_values
+        )
+    ].copy()
+
+    # داخل الفترة
     leaves = leaves[
         (leaves["end_date"] >= period_start)
         &
@@ -270,7 +318,7 @@ def find_leave_for_day(
     day
 ):
 
-    if leaves_df.empty:
+    if leaves_df is None or leaves_df.empty:
 
         return False, ""
 
@@ -301,7 +349,11 @@ def find_leave_for_day(
             "leave_type",
             "إجازة"
         )
-    )
+    ).strip()
+
+    if not leave_type:
+
+        leave_type = "إجازة"
 
     return True, leave_type
 
@@ -322,7 +374,7 @@ def process_attendance(
         return pd.DataFrame()
 
     # =====================================================
-    # RAW
+    # READ RAW
     # =====================================================
 
     raw = pd.read_excel(
@@ -358,7 +410,7 @@ def process_attendance(
         )
 
     # =====================================================
-    # READ
+    # READ FILE
     # =====================================================
 
     df = pd.read_excel(
@@ -370,6 +422,10 @@ def process_attendance(
         str(c).strip()
         for c in df.columns
     ]
+
+    # =====================================================
+    # COLUMNS
+    # =====================================================
 
     employee_id_col = find_column(
         df,
@@ -492,7 +548,7 @@ def process_attendance(
     )
 
     # =====================================================
-    # EMPLOYEES
+    # EMPLOYEES FILE
     # =====================================================
 
     if employees_df is not None and not employees_df.empty:
@@ -552,7 +608,7 @@ def process_attendance(
         )
 
     # =====================================================
-    # RULE
+    # RULES
     # =====================================================
 
     if "attendance_calculation" not in df.columns:
@@ -580,7 +636,7 @@ def process_attendance(
     )
 
     # =====================================================
-    # TIMES
+    # TIME SETTINGS
     # =====================================================
 
     start_hour = int(
@@ -627,6 +683,7 @@ def process_attendance(
             row.get("weekday", "")
         )
 
+        # السبت بدون تأخير
         if weekday == "Saturday":
 
             return 0
@@ -647,7 +704,7 @@ def process_attendance(
         )
 
     # =====================================================
-    # EARLY
+    # EARLY LEAVE
     # =====================================================
 
     def calc_early_leave(row):
@@ -656,6 +713,7 @@ def process_attendance(
             row.get("weekday", "")
         )
 
+        # السبت بدون خروج مبكر
         if weekday == "Saturday":
 
             return 0
@@ -685,6 +743,7 @@ def process_attendance(
             row.get("weekday", "")
         )
 
+        # السبت بدون إضافي
         if weekday == "Saturday":
 
             return 0
@@ -705,7 +764,7 @@ def process_attendance(
         )
 
     # =====================================================
-    # WORKED
+    # WORK HOURS
     # =====================================================
 
     def calc_work_minutes(row):
@@ -730,7 +789,7 @@ def process_attendance(
         )
 
     # =====================================================
-    # CALCULATE
+    # CALCULATIONS
     # =====================================================
 
     df["late_minutes"] = df.apply(
@@ -754,7 +813,7 @@ def process_attendance(
     )
 
     # =====================================================
-    # HHMM
+    # FORMAT
     # =====================================================
 
     df["work_hours"] = (
@@ -870,12 +929,45 @@ def process_attendance(
                 day.date()
             ]
 
+            # يوجد حضور
             if not existing.empty:
 
-                final_rows.append(
+                row_data = (
                     existing.iloc[0].to_dict()
                 )
 
+                # فحص الإجازة
+                is_leave, leave_type = (
+                    find_leave_for_day(
+                        leaves_df,
+                        emp_id,
+                        day
+                    )
+                )
+
+                if is_leave:
+
+                    row_data["status"] = "إجازة"
+
+                    row_data["leave_type"] = leave_type
+
+                    row_data["late_minutes"] = 0
+
+                    row_data["early_leave_minutes"] = 0
+
+                    row_data["overtime_minutes"] = 0
+
+                    row_data["late_hhmm"] = "00:00"
+
+                    row_data["early_leave_hhmm"] = "00:00"
+
+                    row_data["overtime_hhmm"] = "00:00"
+
+                final_rows.append(
+                    row_data
+                )
+
+            # لا يوجد حضور
             else:
 
                 if attendance_rule == "no_absence":
