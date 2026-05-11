@@ -220,21 +220,58 @@ def get_attendance_rule(emp_row):
 # WORKDAY
 # =========================================================
 
-def is_workday(day, attendance_rule="normal"):
+# =========================================================
+# WORKDAY
+# =========================================================
+
+def is_workday(
+    day,
+    attendance_rule="normal",
+    nationality=""
+):
 
     weekday = day.day_name()
+
+    nationality = str(
+        nationality or ""
+    ).strip().lower()
+
+    # =====================================================
+    # FRIDAY
+    # =====================================================
 
     if weekday == "Friday":
 
         return False
 
+    # =====================================================
+    # SATURDAY
+    # =====================================================
+
     if weekday == "Saturday":
 
-        return attendance_rule == "saturday_work"
+        # السعودي إجازة السبت
+        if nationality in [
+
+            "saudi",
+
+            "saudi arabia",
+
+            "سعودي",
+
+            "السعودية"
+        ]:
+
+            return False
+
+        # غير السعودي يعمل السبت
+        return True
+
+    # =====================================================
+    # NORMAL DAYS
+    # =====================================================
 
     return True
-
-
 # =========================================================
 # LEAVES
 # =========================================================
@@ -497,6 +534,10 @@ def process_attendance(
 
         df["department"] = ""
 
+    if "nationality" not in df.columns:
+
+    df["nationality"] = ""
+
     # =====================================================
     # CLEAN
     # =====================================================
@@ -562,6 +603,7 @@ def process_attendance(
             "Arabic name": "employee_name",
 
             "Section | Department": "department",
+            "Nationality": "nationality",
 
             "attendance_calculation": "attendance_calculation",
         })
@@ -576,13 +618,15 @@ def process_attendance(
             emp["attendance_calculation"] = "normal"
 
         keep_cols = [
-
+        
             "employee_id",
-
+        
             "employee_name",
-
+        
             "department",
-
+        
+            "nationality",
+        
             "attendance_calculation",
         ]
 
@@ -606,6 +650,12 @@ def process_attendance(
             df["department_emp"]
             .fillna(df["department"])
         )
+
+        df["nationality"] = (
+            df["nationality_emp"]
+            .fillna(df["nationality"])
+        )
+    
 
     # =====================================================
     # RULES
@@ -904,12 +954,13 @@ def process_attendance(
         end=pd.to_datetime(period_end),
         freq="D"
     )
-
+    
     employees = df[
         [
             "employee_id",
             "employee_name",
             "department",
+            "nationality",
             "attendance_calculation",
         ]
     ].drop_duplicates()
@@ -936,10 +987,14 @@ def process_attendance(
         ].copy()
 
         for day in all_days:
-
+            
             if not is_workday(
+            
                 day,
-                attendance_rule
+            
+                attendance_rule,
+            
+                emp.get("nationality", "")
             ):
 
                 continue
