@@ -220,10 +220,6 @@ def get_attendance_rule(emp_row):
 # WORKDAY
 # =========================================================
 
-# =========================================================
-# WORKDAY
-# =========================================================
-
 def is_workday(
     day,
     attendance_rule="normal",
@@ -236,21 +232,15 @@ def is_workday(
         nationality or ""
     ).strip().lower()
 
-    # =====================================================
-    # FRIDAY
-    # =====================================================
-
+    # الجمعة إجازة للجميع
     if weekday == "Friday":
 
         return False
 
-    # =====================================================
-    # SATURDAY
-    # =====================================================
-
+    # السبت
     if weekday == "Saturday":
 
-        # السعودي إجازة السبت
+        # السعودي إجازة
         if nationality in [
 
             "saudi",
@@ -267,11 +257,9 @@ def is_workday(
         # غير السعودي يعمل السبت
         return True
 
-    # =====================================================
-    # NORMAL DAYS
-    # =====================================================
-
     return True
+
+
 # =========================================================
 # LEAVES
 # =========================================================
@@ -286,7 +274,6 @@ def prepare_leaves(period_start, period_end):
 
     leaves = leaves.copy()
 
-    # أعمدة افتراضية
     for c in [
         "employee_id",
         "leave_type",
@@ -312,7 +299,6 @@ def prepare_leaves(period_start, period_end):
         errors="coerce"
     ).dt.normalize()
 
-    # المعتمد فقط
     leaves["status"] = (
         leaves["status"]
         .astype(str)
@@ -339,7 +325,6 @@ def prepare_leaves(period_start, period_end):
         )
     ].copy()
 
-    # داخل الفترة
     leaves = leaves[
         (leaves["end_date"] >= period_start)
         &
@@ -411,7 +396,7 @@ def process_attendance(
         return pd.DataFrame()
 
     # =====================================================
-    # READ RAW
+    # RAW
     # =====================================================
 
     raw = pd.read_excel(
@@ -447,7 +432,7 @@ def process_attendance(
         )
 
     # =====================================================
-    # READ FILE
+    # READ
     # =====================================================
 
     df = pd.read_excel(
@@ -471,7 +456,11 @@ def process_attendance(
 
     employee_name_col = find_column(
         df,
-        ["First Name", "Employee Name", "Name"]
+        [
+            "First Name",
+            "Employee Name",
+            "Name"
+        ]
     )
 
     department_col = find_column(
@@ -595,77 +584,103 @@ def process_attendance(
     if employees_df is not None and not employees_df.empty:
 
         emp = employees_df.copy()
-        
+
         emp = emp.rename(columns={
-        
+
             "Personnel Number": "employee_id",
-        
+
             "Arabic name": "employee_name",
-        
+
+            "Employee Name Arabic": "employee_name",
+
             "Section | Department": "department",
-        
+
+            "Department": "department",
+
             "Nationality": "nationality",
-        
+
             "nationality": "nationality",
-        
+
             "الجنسية": "nationality",
-        
+
             "attendance_calculation": "attendance_calculation",
         })
+
+        if "employee_name" not in emp.columns:
+
+            emp["employee_name"] = ""
+
+        if "department" not in emp.columns:
+
+            emp["department"] = ""
+
+        if "nationality" not in emp.columns:
+
+            emp["nationality"] = ""
+
+        if "attendance_calculation" not in emp.columns:
+
+            emp["attendance_calculation"] = "normal"
 
         emp["employee_id"] = (
             emp["employee_id"]
             .apply(normalize_id)
         )
 
-        if "attendance_calculation" not in emp.columns:
+        keep_cols = [
 
-            emp["attendance_calculation"] = "normal"
-            
-            keep_cols = [
-            
-                "employee_id",
-            
-                "employee_name",
-            
-                "department",
-            
-                "attendance_calculation",
-            ]
-            
-            # إضافة الجنسية إذا موجودة
-            if "nationality" in emp.columns:
-            
-                keep_cols.append(
-                    "nationality"
-                )
+            "employee_id",
+
+            "employee_name",
+
+            "department",
+
+            "nationality",
+
+            "attendance_calculation",
+        ]
 
         emp = emp[
             keep_cols
         ].drop_duplicates()
 
         df = df.merge(
+
             emp,
+
             on="employee_id",
+
             how="left",
+
             suffixes=("", "_emp")
         )
 
-        df["employee_name"] = (
-            df["employee_name_emp"]
-            .fillna(df["employee_name"])
-        )
+        if "employee_name_emp" in df.columns:
 
-        df["department"] = (
-            df["department_emp"]
-            .fillna(df["department"])
-        )
+            df["employee_name"] = (
 
-        df["nationality"] = (
-            df["nationality_emp"]
-            .fillna(df["nationality"])
-        )
-    
+                df["employee_name_emp"]
+
+                .fillna(df["employee_name"])
+            )
+
+        if "department_emp" in df.columns:
+
+            df["department"] = (
+
+                df["department_emp"]
+
+                .fillna(df["department"])
+            )
+
+        if "nationality_emp" in df.columns:
+
+            df["nationality"] = (
+
+                df["nationality_emp"]
+
+                .fillna("")
+            )
 
     # =====================================================
     # RULES
@@ -696,7 +711,7 @@ def process_attendance(
     )
 
     # =====================================================
-    # TIME SETTINGS
+    # SETTINGS
     # =====================================================
 
     start_hour = int(
@@ -743,7 +758,6 @@ def process_attendance(
             row.get("weekday", "")
         )
 
-        # السبت بدون تأخير
         if weekday == "Saturday":
 
             return 0
@@ -773,7 +787,6 @@ def process_attendance(
             row.get("weekday", "")
         )
 
-        # السبت بدون خروج مبكر
         if weekday == "Saturday":
 
             return 0
@@ -803,7 +816,6 @@ def process_attendance(
             row.get("weekday", "")
         )
 
-        # السبت بدون إضافي
         if weekday == "Saturday":
 
             return 0
@@ -821,72 +833,57 @@ def process_attendance(
         return max(
             0,
             int(actual - end_minutes)
-            )
-        
+        )
+
     # =====================================================
     # WORK HOURS
     # =====================================================
-    # =====================================================
-    # WORK HOURS
-    # =====================================================
-    
+
     def calc_work_minutes(row):
-    
+
         weekday = str(
             row.get("weekday", "")
         )
-    
+
         nationality = str(
             row.get("nationality", "")
         ).strip().lower()
-    
-        # =================================================
-        # SATURDAY
-        # =================================================
-    
+
         if weekday == "Saturday":
-    
-            # السعودي السبت إجازة
+
             if nationality in [
-    
+
                 "saudi",
-    
+
                 "saudi arabia",
-    
+
                 "سعودي",
-    
+
                 "السعودية"
             ]:
-    
+
                 return 0
-    
-        # =================================================
-        # NO PUNCH
-        # =================================================
-    
+
         if pd.isna(row["first_punch"]):
-    
+
             return 0
-    
+
         if pd.isna(row["last_punch"]):
-    
+
             return 0
-    
-        # =================================================
-        # CALC
-        # =================================================
-    
+
         diff = (
             row["last_punch"]
             -
             row["first_punch"]
         )
-    
+
         minutes = int(
             diff.total_seconds() // 60
         )
-    
+
         return max(0, minutes)
+
     # =====================================================
     # CALCULATIONS
     # =====================================================
@@ -948,7 +945,6 @@ def process_attendance(
             )
         ).strip()
 
-        # السبت
         if weekday == "Saturday":
 
             if pd.isna(
@@ -959,7 +955,6 @@ def process_attendance(
 
             return "حاضر"
 
-        # الأيام العادية
         if row.get("late_minutes", 0) > 0:
 
             return "متأخر"
@@ -982,7 +977,7 @@ def process_attendance(
         end=pd.to_datetime(period_end),
         freq="D"
     )
-    
+
     employees = df[
         [
             "employee_id",
@@ -1015,13 +1010,13 @@ def process_attendance(
         ].copy()
 
         for day in all_days:
-            
+
             if not is_workday(
-            
+
                 day,
-            
+
                 attendance_rule,
-            
+
                 emp.get("nationality", "")
             ):
 
@@ -1033,14 +1028,16 @@ def process_attendance(
                 day.date()
             ]
 
-            # يوجد حضور
+            # =================================================
+            # HAS ATTENDANCE
+            # =================================================
+
             if not existing.empty:
 
                 row_data = (
                     existing.iloc[0].to_dict()
                 )
 
-                # فحص الإجازة
                 is_leave, leave_type = (
                     find_leave_for_day(
                         leaves_df,
@@ -1049,35 +1046,38 @@ def process_attendance(
                     )
                 )
 
-                
                 if is_leave:
-                
-                    row_data["status"] = f"إجازة - {leave_type}"
-                
+
+                    row_data["status"] = (
+                        f"إجازة - {leave_type}"
+                    )
+
                     row_data["leave_type"] = leave_type
-                
-                    # تصفير كل الحسابات
+
                     row_data["worked_minutes"] = 0
-                
+
                     row_data["work_hours"] = "00:00"
-                
+
                     row_data["late_minutes"] = 0
-                
+
                     row_data["early_leave_minutes"] = 0
-                
+
                     row_data["overtime_minutes"] = 0
-                
+
                     row_data["late_hhmm"] = "00:00"
-                
+
                     row_data["early_leave_hhmm"] = "00:00"
-                
+
                     row_data["overtime_hhmm"] = "00:00"
 
                 final_rows.append(
                     row_data
                 )
 
-            # لا يوجد حضور
+            # =================================================
+            # NO ATTENDANCE
+            # =================================================
+
             else:
 
                 if attendance_rule == "no_absence":
@@ -1101,6 +1101,8 @@ def process_attendance(
                     "employee_name": emp["employee_name"],
 
                     "department": emp["department"],
+
+                    "nationality": emp["nationality"],
 
                     "attendance_calculation": attendance_rule,
 
