@@ -1,4 +1,4 @@
-```python
+
 import pandas as pd
 
 from database.leaves_db import load_leaves_db
