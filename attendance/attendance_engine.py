@@ -761,33 +761,49 @@ def process_attendance(
         return max(
             0,
             int(actual - end_minutes)
-        )
-
+            )
+    
     # =====================================================
     # WORK HOURS
     # =====================================================
-
+    
     def calc_work_minutes(row):
-
+    
+        weekday = str(
+            row.get("weekday", "")
+        )
+    
+        # السبت بدون ساعات
+        if weekday == "Saturday":
+    
+            return 0
+    
+        # إجازة
+        if str(
+            row.get("status", "")
+        ) == "إجازة":
+    
+            return 0
+    
         if pd.isna(row["first_punch"]):
-
+    
             return 0
-
+    
         if pd.isna(row["last_punch"]):
-
+    
             return 0
-
+    
         diff = (
             row["last_punch"]
             -
             row["first_punch"]
         )
-
-        return max(
-            0,
-            int(diff.total_seconds() // 60)
+    
+        minutes = int(
+            diff.total_seconds() // 60
         )
-
+    
+        return max(0, minutes)
     # =====================================================
     # CALCULATIONS
     # =====================================================
