@@ -416,12 +416,19 @@ def process_attendance(
             )
 
         if "nationality" not in df.columns:
-
+        
             df["nationality"] = ""
-
-    else:
-
-        df["nationality"] = ""
+        
+        if "nationality_emp" in df.columns:
+        
+            df["nationality"] = (
+                df["nationality_emp"]
+                .fillna("")
+            )
+    
+        else:
+    
+            df["nationality"] = ""
 
     # =====================================================
     # WEEKDAY
