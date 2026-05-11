@@ -1,706 +1,470 @@
-
 import pandas as pd
 
 from database.leaves_db import load_leaves_db
 
-
 WEEKDAY_AR = {
-
-    "Saturday": "السبت",
-    "Sunday": "الأحد",
-    "Monday": "الإثنين",
-    "Tuesday": "الثلاثاء",
-    "Wednesday": "الأربعاء",
-    "Thursday": "الخميس",
-    "Friday": "الجمعة",
+"Saturday": "السبت",
+"Sunday": "الأحد",
+"Monday": "الإثنين",
+"Tuesday": "الثلاثاء",
+"Wednesday": "الأربعاء",
+"Thursday": "الخميس",
+"Friday": "الجمعة",
 }
-
-
-# =========================================================
-# NORMALIZE ID
-# =========================================================
 
 def normalize_id(v):
 
-    try:
+```
+try:
 
-        v = str(v).strip()
+    v = str(v).strip()
 
-        if v.endswith(".0"):
+    if v.endswith(".0"):
 
-            v = v[:-2]
+        v = v[:-2]
 
-        return v
+    return v
 
-    except Exception:
+except Exception:
 
-        return ""
-
-
-# =========================================================
-# FIND COLUMN
-# =========================================================
-
-def find_column(df, possible_names):
-
-    for col in df.columns:
-
-        clean_col = str(col).strip().lower()
-
-        for name in possible_names:
-
-            if clean_col == name.lower():
-
-                return col
-
-    return None
-
-
-# =========================================================
-# MINUTES TO HHMM
-# =========================================================
+    return ""
+```
 
 def minutes_to_hhmm(minutes):
 
-    try:
+```
+try:
 
-        minutes = int(minutes or 0)
+    minutes = int(minutes or 0)
 
-    except Exception:
+except Exception:
 
-        minutes = 0
+    minutes = 0
 
-    sign = "-" if minutes < 0 else ""
+sign = "-" if minutes < 0 else ""
 
-    minutes = abs(minutes)
+minutes = abs(minutes)
 
-    return f"{sign}{minutes // 60:02}:{minutes % 60:02}"
+return f"{sign}{minutes // 60:02}:{minutes % 60:02}"
+```
 
+def find_column(df, possible_names):
 
-# =========================================================
-# PARSE TIME
-# =========================================================
+```
+for col in df.columns:
+
+    clean_col = str(col).strip().lower()
+
+    for name in possible_names:
+
+        if clean_col == name.lower():
+
+            return col
+
+return None
+```
 
 def parse_time_col(series):
 
-    return pd.to_datetime(
-
-        series.astype(str).str.strip(),
-
-        format="%H:%M:%S",
-
-        errors="coerce"
-    )
-
-
-# =========================================================
-# WORKDAY
-# =========================================================
-
-def is_workday(day, nationality=""):
-
-    weekday = day.day_name()
-
-    nationality = str(
-        nationality or ""
-    ).strip().lower()
-
-    # الجمعة إجازة للجميع
-    if weekday == "Friday":
-
-        return False
-
-    # السبت
-    if weekday == "Saturday":
-
-        # السعودي إجازة
-        if nationality in [
-
-            "saudi",
-
-            "saudi arabia",
-
-            "سعودي",
-
-            "السعودية"
-        ]:
-
-            return False
-
-        # غير السعودي يعمل السبت
-        return True
-
-    return True
-
-
-# =========================================================
-# LEAVES
-# =========================================================
-
-def prepare_leaves():
-
-    leaves = load_leaves_db()
-
-    if leaves is None or leaves.empty:
-
-        return pd.DataFrame()
-
-    leaves = leaves.copy()
-
-    for c in [
-
-        "employee_id",
-
-        "leave_type",
-
-        "status",
-    ]:
-
-        if c not in leaves.columns:
-
-            leaves[c] = ""
-
-    leaves["employee_id"] = (
-        leaves["employee_id"]
-        .apply(normalize_id)
-    )
-
-    leaves["start_date"] = pd.to_datetime(
-        leaves["start_date"],
-        errors="coerce"
-    ).dt.normalize()
-
-    leaves["end_date"] = pd.to_datetime(
-        leaves["end_date"],
-        errors="coerce"
-    ).dt.normalize()
-
-    return leaves
-
-
-def find_leave_for_day(
-    leaves_df,
-    employee_id,
-    day
-):
-
-    if leaves_df.empty:
-
-        return False, ""
-
-    emp_id = normalize_id(employee_id)
-
-    check_date = pd.to_datetime(day).normalize()
-
-    emp_leaves = leaves_df[
-        leaves_df["employee_id"] == emp_id
-    ]
-
-    if emp_leaves.empty:
-
-        return False, ""
-
-    hit = emp_leaves[
-        (emp_leaves["start_date"] <= check_date)
-        &
-        (emp_leaves["end_date"] >= check_date)
-    ]
-
-    if hit.empty:
-
-        return False, ""
-
-    leave_type = str(
-        hit.iloc[0].get(
-            "leave_type",
-            "إجازة"
-        )
-    )
-
-    return True, leave_type
-
-
-# =========================================================
-# MAIN
-# =========================================================
+```
+return pd.to_datetime(
+    series.astype(str).str.strip(),
+    format="%H:%M:%S",
+    errors="coerce"
+)
+```
 
 def process_attendance(
-    uploaded_file,
-    work_start="08:00",
-    grace_minutes=15,
-    employees_df=None
+
+```
+uploaded_file,
+
+work_start="08:00",
+
+grace_minutes=15,
+
+employees_df=None
+```
+
 ):
 
-    if uploaded_file is None:
+```
+if uploaded_file is None:
 
-        return pd.DataFrame()
+    return pd.DataFrame()
 
-    # =====================================================
-    # RAW
-    # =====================================================
+raw = pd.read_excel(
+    uploaded_file,
+    header=None
+)
 
-    raw = pd.read_excel(
-        uploaded_file,
-        header=None
-    )
+header_row = None
 
-    header_row = None
+for i in range(min(10, len(raw))):
 
-    for i in range(min(10, len(raw))):
+    vals = [
 
-        row_values = [
+        str(x).strip().lower()
 
-            str(x).strip().lower()
-
-            for x in raw.iloc[i].tolist()
-        ]
-
-        if (
-            "employee id" in row_values
-            and
-            "date" in row_values
-        ):
-
-            header_row = i
-
-            break
-
-    if header_row is None:
-
-        raise Exception(
-            "لم يتم العثور على صف العناوين"
-        )
-
-    # =====================================================
-    # READ
-    # =====================================================
-
-    df = pd.read_excel(
-        uploaded_file,
-        header=header_row
-    )
-
-    df.columns = [
-        str(c).strip()
-        for c in df.columns
+        for x in raw.iloc[i].tolist()
     ]
 
-    # =====================================================
-    # COLUMNS
-    # =====================================================
+    if (
+        "employee id" in vals
+        and
+        "date" in vals
+    ):
 
-    employee_id_col = find_column(
-        df,
-        ["Employee ID"]
+        header_row = i
+
+        break
+
+if header_row is None:
+
+    raise Exception(
+        "لم يتم العثور على صف العناوين"
     )
 
-    employee_name_col = find_column(
-        df,
-        ["First Name"]
-    )
+df = pd.read_excel(
+    uploaded_file,
+    header=header_row
+)
 
-    department_col = find_column(
-        df,
-        ["Department"]
-    )
+df.columns = [
+    str(c).strip()
+    for c in df.columns
+]
 
-    date_col = find_column(
-        df,
-        ["Date"]
-    )
+employee_id_col = find_column(
+    df,
+    ["Employee ID"]
+)
 
-    first_punch_col = find_column(
-        df,
-        ["First Punch"]
-    )
+employee_name_col = find_column(
+    df,
+    ["First Name"]
+)
 
-    last_punch_col = find_column(
-        df,
-        ["Last Punch"]
-    )
+department_col = find_column(
+    df,
+    ["Department"]
+)
 
-    rename_map = {
+date_col = find_column(
+    df,
+    ["Date"]
+)
 
-        employee_id_col: "employee_id",
+first_punch_col = find_column(
+    df,
+    ["First Punch"]
+)
 
-        employee_name_col: "employee_name",
+last_punch_col = find_column(
+    df,
+    ["Last Punch"]
+)
 
-        department_col: "department",
+rename_map = {
 
-        date_col: "date",
+    employee_id_col: "employee_id",
 
-        first_punch_col: "first_punch",
+    employee_name_col: "employee_name",
 
-        last_punch_col: "last_punch",
-    }
+    department_col: "department",
 
-    df.rename(
-        columns=rename_map,
-        inplace=True
-    )
+    date_col: "date",
 
-    # =====================================================
-    # CLEAN
-    # =====================================================
+    first_punch_col: "first_punch",
 
-    df["employee_id"] = (
-        df["employee_id"]
+    last_punch_col: "last_punch",
+}
+
+df.rename(
+    columns=rename_map,
+    inplace=True
+)
+
+df["employee_id"] = (
+    df["employee_id"]
+    .apply(normalize_id)
+)
+
+df["date"] = pd.to_datetime(
+    df["date"],
+    errors="coerce"
+).dt.normalize()
+
+df["first_punch"] = parse_time_col(
+    df["first_punch"]
+)
+
+df["last_punch"] = parse_time_col(
+    df["last_punch"]
+)
+
+if employees_df is not None and not employees_df.empty:
+
+    emp = employees_df.copy()
+
+    emp = emp.rename(columns={
+
+        "Personnel Number": "employee_id",
+
+        "Arabic name": "employee_name",
+
+        "Nationality": "nationality",
+
+        "الجنسية": "nationality",
+    })
+
+    if "nationality" not in emp.columns:
+
+        emp["nationality"] = ""
+
+    emp["employee_id"] = (
+        emp["employee_id"]
         .apply(normalize_id)
     )
 
-    df["date"] = pd.to_datetime(
-        df["date"],
-        errors="coerce"
-    ).dt.normalize()
+    emp = emp[
+        [
+            "employee_id",
+            "employee_name",
+            "nationality"
+        ]
+    ].drop_duplicates()
 
-    df["first_punch"] = parse_time_col(
-        df["first_punch"]
+    df = df.merge(
+
+        emp,
+
+        on="employee_id",
+
+        how="left",
+
+        suffixes=("", "_emp")
     )
 
-    df["last_punch"] = parse_time_col(
-        df["last_punch"]
-    )
+    if "employee_name_emp" in df.columns:
 
-    # =====================================================
-    # EMPLOYEES FILE
-    # =====================================================
-
-    if employees_df is not None and not employees_df.empty:
-
-        emp = employees_df.copy()
-
-        emp = emp.rename(columns={
-
-            "Personnel Number": "employee_id",
-
-            "Arabic name": "employee_name",
-
-            "Nationality": "nationality",
-
-            "الجنسية": "nationality",
-        })
-
-        if "nationality" not in emp.columns:
-
-            emp["nationality"] = ""
-
-        emp["employee_id"] = (
-            emp["employee_id"]
-            .apply(normalize_id)
+        df["employee_name"] = (
+            df["employee_name_emp"]
+            .fillna(df["employee_name"])
         )
 
-        emp = emp[
-            [
-                "employee_id",
-                "employee_name",
-                "nationality"
-            ]
-        ].drop_duplicates()
+    if "nationality" not in df.columns:
 
-        df = df.merge(
+        df["nationality"] = ""
 
-            emp,
+else:
 
-            on="employee_id",
+    df["nationality"] = ""
 
-            how="left",
+df["weekday"] = (
+    df["date"].dt.day_name()
+)
 
-            suffixes=("", "_emp")
-        )
+df["weekday_ar"] = (
+    df["weekday"].map(WEEKDAY_AR)
+)
 
-        if "employee_name_emp" in df.columns:
+start_hour = int(
+    work_start.split(":")[0]
+)
 
-            df["employee_name"] = (
-                df["employee_name_emp"]
-                .fillna(df["employee_name"])
-            )
+start_minute = int(
+    work_start.split(":")[1]
+)
 
-        if "nationality" not in df.columns:
-        
-            df["nationality"] = ""
-        
-        if "nationality_emp" in df.columns:
-        
-            df["nationality"] = (
-                df["nationality_emp"]
-                .fillna("")
-            )
-    
-        else:
-    
-            df["nationality"] = ""
+start_minutes = (
+    start_hour * 60
+    +
+    start_minute
+)
 
-    # =====================================================
-    # WEEKDAY
-    # =====================================================
+late_limit_minutes = (
+    start_minutes
+    +
+    int(grace_minutes)
+)
 
-    df["weekday"] = (
-        df["date"].dt.day_name()
-    )
+end_minutes = 17 * 60
 
-    df["weekday_ar"] = (
-        df["weekday"].map(WEEKDAY_AR)
-    )
+def calc_late(row):
 
-    # =====================================================
-    # SETTINGS
-    # =====================================================
+    if row["weekday"] == "Saturday":
 
-    start_hour = int(
-        work_start.split(":")[0]
-    )
+        return 0
 
-    start_minute = int(
-        work_start.split(":")[1]
-    )
+    if pd.isna(row["first_punch"]):
 
-    start_minutes = (
-        start_hour * 60
+        return 0
+
+    actual = (
+        row["first_punch"].hour * 60
         +
-        start_minute
+        row["first_punch"].minute
     )
 
-    late_limit_minutes = (
-        start_minutes
+    return max(
+        0,
+        actual - late_limit_minutes
+    )
+
+def calc_early(row):
+
+    if row["weekday"] == "Saturday":
+
+        return 0
+
+    if pd.isna(row["last_punch"]):
+
+        return 0
+
+    actual = (
+        row["last_punch"].hour * 60
         +
-        int(grace_minutes)
+        row["last_punch"].minute
     )
 
-    end_minutes = 17 * 60
+    return max(
+        0,
+        end_minutes - actual
+    )
 
-    # =====================================================
-    # LATE
-    # =====================================================
+def calc_ot(row):
 
-    def calc_late(row):
+    if row["weekday"] == "Saturday":
 
-        if row["weekday"] == "Saturday":
+        return 0
 
-            return 0
+    if pd.isna(row["last_punch"]):
 
-        if pd.isna(row["first_punch"]):
+        return 0
 
-            return 0
+    actual = (
+        row["last_punch"].hour * 60
+        +
+        row["last_punch"].minute
+    )
 
-        actual = (
-            row["first_punch"].hour * 60
-            +
-            row["first_punch"].minute
-        )
+    return max(
+        0,
+        actual - end_minutes
+    )
 
-        return max(
-            0,
-            actual - late_limit_minutes
-        )
+def calc_work(row):
 
-    # =====================================================
-    # EARLY
-    # =====================================================
+    nationality = str(
+        row.get("nationality", "")
+    ).strip().lower()
 
-    def calc_early(row):
+    if (
+        row["weekday"] == "Saturday"
+        and
+        nationality in [
+            "saudi",
+            "saudi arabia",
+            "سعودي",
+            "السعودية"
+        ]
+    ):
 
-        if row["weekday"] == "Saturday":
+        return 0
 
-            return 0
+    if pd.isna(row["first_punch"]):
 
-        if pd.isna(row["last_punch"]):
+        return 0
 
-            return 0
+    if pd.isna(row["last_punch"]):
 
-        actual = (
-            row["last_punch"].hour * 60
-            +
-            row["last_punch"].minute
-        )
+        return 0
 
-        return max(
-            0,
-            end_minutes - actual
-        )
+    diff = (
+        row["last_punch"]
+        -
+        row["first_punch"]
+    )
 
-    # =====================================================
-    # OVERTIME
-    # =====================================================
+    return max(
+        0,
+        int(diff.total_seconds() // 60)
+    )
 
-    def calc_ot(row):
+df["late_minutes"] = df.apply(
+    calc_late,
+    axis=1
+)
 
-        if row["weekday"] == "Saturday":
+df["early_leave_minutes"] = df.apply(
+    calc_early,
+    axis=1
+)
 
-            return 0
+df["overtime_minutes"] = df.apply(
+    calc_ot,
+    axis=1
+)
 
-        if pd.isna(row["last_punch"]):
+df["worked_minutes"] = df.apply(
+    calc_work,
+    axis=1
+)
 
-            return 0
+df["late_hhmm"] = (
+    df["late_minutes"]
+    .apply(minutes_to_hhmm)
+)
 
-        actual = (
-            row["last_punch"].hour * 60
-            +
-            row["last_punch"].minute
-        )
+df["early_leave_hhmm"] = (
+    df["early_leave_minutes"]
+    .apply(minutes_to_hhmm)
+)
 
-        return max(
-            0,
-            actual - end_minutes
-        )
+df["overtime_hhmm"] = (
+    df["overtime_minutes"]
+    .apply(minutes_to_hhmm)
+)
 
-    # =====================================================
-    # WORK HOURS
-    # =====================================================
+df["work_hours"] = (
+    df["worked_minutes"]
+    .apply(minutes_to_hhmm)
+)
 
-    def calc_work(row):
+statuses = []
 
-        nationality = str(
-            row.get("nationality", "")
-        ).strip().lower()
+leave_types = []
 
-        # السعودي السبت إجازة
-        if (
-            row["weekday"] == "Saturday"
-            and
-            nationality in [
-                "saudi",
-                "saudi arabia",
-                "سعودي",
-                "السعودية"
-            ]
+for _, row in df.iterrows():
+
+    if row["weekday"] == "Saturday":
+
+        if pd.isna(
+            row["first_punch"]
         ):
 
-            return 0
-
-        if pd.isna(row["first_punch"]):
-
-            return 0
-
-        if pd.isna(row["last_punch"]):
-
-            return 0
-
-        diff = (
-            row["last_punch"]
-            -
-            row["first_punch"]
-        )
-
-        return max(
-            0,
-            int(diff.total_seconds() // 60)
-        )
-
-    # =====================================================
-    # CALCULATIONS
-    # =====================================================
-
-    df["late_minutes"] = df.apply(
-        calc_late,
-        axis=1
-    )
-
-    df["early_leave_minutes"] = df.apply(
-        calc_early,
-        axis=1
-    )
-
-    df["overtime_minutes"] = df.apply(
-        calc_ot,
-        axis=1
-    )
-
-    df["worked_minutes"] = df.apply(
-        calc_work,
-        axis=1
-    )
-
-    # =====================================================
-    # FORMAT
-    # =====================================================
-
-    df["late_hhmm"] = (
-        df["late_minutes"]
-        .apply(minutes_to_hhmm)
-    )
-
-    df["early_leave_hhmm"] = (
-        df["early_leave_minutes"]
-        .apply(minutes_to_hhmm)
-    )
-
-    df["overtime_hhmm"] = (
-        df["overtime_minutes"]
-        .apply(minutes_to_hhmm)
-    )
-
-    df["work_hours"] = (
-        df["worked_minutes"]
-        .apply(minutes_to_hhmm)
-    )
-
-    # =====================================================
-    # LEAVES
-    # =====================================================
-
-    leaves_df = prepare_leaves()
-
-    statuses = []
-
-    leave_types = []
-
-    for _, row in df.iterrows():
-
-        is_leave, leave_type = (
-            find_leave_for_day(
-                leaves_df,
-                row["employee_id"],
-                row["date"]
-            )
-        )
-
-        if is_leave:
-
-            statuses.append(
-                f"إجازة - {leave_type}"
-            )
-
-            leave_types.append(
-                leave_type
-            )
+            statuses.append("غائب")
 
         else:
 
-            if row["weekday"] == "Saturday":
+            statuses.append("حاضر")
 
-                if pd.isna(
-                    row["first_punch"]
-                ):
+    else:
 
-                    statuses.append(
-                        "غائب"
-                    )
+        if row["late_minutes"] > 0:
 
-                else:
+            statuses.append("متأخر")
 
-                    statuses.append(
-                        "حاضر"
-                    )
+        else:
 
-            else:
+            statuses.append("حاضر")
 
-                if row["late_minutes"] > 0:
+    leave_types.append("")
 
-                    statuses.append(
-                        "متأخر"
-                    )
+df["status"] = statuses
 
-                else:
+df["leave_type"] = leave_types
 
-                    statuses.append(
-                        "حاضر"
-                    )
-
-            leave_types.append("")
-
-    df["status"] = statuses
-
-    df["leave_type"] = leave_types
-
-    return df
+return df
 ```
