@@ -122,12 +122,12 @@ def prepare_leaves():
     leaves["start_date"] = pd.to_datetime(
         leaves["start_date"],
         errors="coerce"
-    ).dt.normalize()
+    ).dt.floor("D")
 
     leaves["end_date"] = pd.to_datetime(
         leaves["end_date"],
         errors="coerce"
-    ).dt.normalize()
+    ).dt.floor("D")
 
     return leaves
 
